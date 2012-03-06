@@ -1,0 +1,22 @@
+{
+	"id": "com.monkeystew.todotxtenyo.beta",
+	"version": "0.1.0",
+	"vendor": "Monkeystew",
+	"type": "web",
+	"main": "index.html",
+	"title": "Todo.txt Enyo beta",
+	"icon": "icon.png",
+	"uiRevision": 2,
+    "universalSearch": {
+        "search": {
+            "displayName":"Todo.txt Enyo",
+            "url":"com.monkeystew.todotxtenyo.beta",
+            "launchParam":"search"
+        },
+        "action": {
+            "displayName":"New todo.txt task",
+            "url":"com.monkeystew.todotxtenyo.beta",
+            "launchParam":"addTodoText"
+        }
+    }
+}

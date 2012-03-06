@@ -1,0 +1,10 @@
+{
+	"id": "com.monkeystew.todotxtenyo.beta",
+    "package_format_version": 2,
+    "loc_name": "Todo.txt Enyo",
+    "icon": "icon.png",
+	"version": "0.1.0",
+	"vendor": "Monkeystew",
+    "app": "com.monkeystew.todotxtenyo.beta",
+    "services": ["com.monkeystew.todotxtenyo.beta.service"]
+}

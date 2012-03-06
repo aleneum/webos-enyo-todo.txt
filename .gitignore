@@ -1,0 +1,4 @@
+*.swp
+*.ipk
+*.*~
+dropbox-auth.js

@@ -1,0 +1,11 @@
+enyo.depends(
+	"source/TodoTxt.js",
+    "source/TodoList.js",
+    "source/TodoEdit.js",
+    "source/TodoPrefs.js",
+    "source/dropbox-auth.js",
+    "source/Dropbox.js",
+    "source/oauth.js",
+    "source/sha1.js",
+	"source/styles.css"
+);

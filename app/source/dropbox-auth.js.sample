@@ -1,0 +1,9 @@
+
+/* Dropbox will NOT work unless you replace the following two
+* properties with the appropriate values for your registered
+* application and rename the file to dropbox-auth.js or you
+* will be able to package and run this correctly.
+*/
+
+var consumerKey = "";
+var consumerSecret = "";

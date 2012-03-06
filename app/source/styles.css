@@ -1,0 +1,35 @@
+/*Your CSS here*/
+/* TODO: retheme this whole bloddy mess */
+.todo-header {
+    background-color: #448820;
+    color: white;
+}
+.todo-view-title {
+    font-size: 90%;
+}
+.box-center {
+    width: 320px;
+    margin: 23px auto 0;
+}
+.left-col {
+    margin-right: 7px;
+    color: #777777;
+}
+.mid-col {
+    margin-right: 5px;
+}
+.pri-a { color: yellow; }
+.pri-b { color: green; }
+.pri-c { color: slateblue; }
+.dialog-fix {
+    height: 100%;
+}
+.completed-item {
+    color: #aaaaaa;
+}
+.selected-item {
+    background: grey;
+    color: white;
+}
+.ver-history { font-size: 16px; }
+.version { font-weight: bold;}

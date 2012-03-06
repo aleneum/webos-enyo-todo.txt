@@ -1,0 +1,5 @@
+{ "returnValue": true,
+  "path": "/dummy",
+  "content": "x TEST ENTRY 2\n(C) Alpha TEST ENTRY 1\n(A) Beta TEST ENTRY 3\nTEST ENTRY 4\n(B) Some TEST ENTRY 5\n+TestProject1 @Bug this is my next bug for testing\n+someotherp testing some other one\n"
+
+}
