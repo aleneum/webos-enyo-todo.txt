@@ -7,7 +7,7 @@ Current Features
 ----------------
 
 * Set and sort by priority
-* Task completion (and optionaly creation) dates
+* Task completion (and optionally creation) dates
 * "Just Type" quick actions and universal search
 * Internal storage support
 * Dropbox support
@@ -17,5 +17,5 @@ Planned Features
 
 * Filter by project, context, priority
 * Tablet friendly UI
-* Addtional cloud storage options
+* Additional cloud storage options
 
