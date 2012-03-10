@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+    <title>Todo.txt Enyo</title>
+    <meta name="viewport" content="height=device-height,width=device-width">
+    <script src="enyo-1.0-r1/framework/enyo.js" type="text/javascript"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var appInstance = enyo.create({kind: "TodoTxt"});
+
+    if (window.PalmSystem && enyo.windowParams) {
+        appInstance.setLaunchParams(enyo.windowParams);
+    }
+    appInstance.renderInto(document.body);
+</script>
+<div id="history" style="display: none">
+    <div class="version">0.1.0</div>
+    <ul>
+        <li>Initial open source and beta release.</li>
+    </ul>
+</div>
+</body>
+</html>

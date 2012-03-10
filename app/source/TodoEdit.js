@@ -24,7 +24,7 @@ enyo.kind({
     components: [
 
         {flex: 1, kind: "Scroller", components: [
-            {kind: "RichText", name: "tododetail"},
+            {kind: "Input", name: "tododetail"},
         ]},
         {name: "editToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [
