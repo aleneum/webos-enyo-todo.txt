@@ -9,7 +9,6 @@ ReadFileAssistant.prototype.run = function(future) {
     fs.readFile(path, 'utf8', function(err,data) {
         //future.result = { path: path, content: data };
         setTimeout(function () {
-            console.log("delay test...");
             future.result = { path: path, content: data };
         }, 100);
     });
