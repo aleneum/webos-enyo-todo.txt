@@ -7,7 +7,7 @@
 
 <widget xmlns="http://www.w3.org/ns/widgets"
         xmlns:rim="http://www.blackberry.com/ns/widgets"
-	version="0.1.0">
+	version="0.2.0">
 
   <name>Todo.txt Enyo</name>
 
@@ -34,13 +34,7 @@
 
   <icon src="icon.png" />
 
-  <rim:loadingScreen backgroundColor="#000000"
-                     foregroundImage="icon.png"
-		     onFirstLaunch="true">
-    <rim:transitionEffect type="fadeOut" />
-  </rim:loadingScreen>
-
-  <content src="index.html" />
+  <content src="appindex.html" />
 
   <rim:permissions>
     <rim:permit>access_shared</rim:permit>
