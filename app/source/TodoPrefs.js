@@ -82,7 +82,7 @@ enyo.kind({
                             }
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
-                        name: "dboxpathselect", showing: true,
+                        name: "dboxpathselect", showing: false,
                         components: [
                             {flex: 1, kind: "Input", name: "dboxpath",
                                 preferenceProperty: "dboxpath",

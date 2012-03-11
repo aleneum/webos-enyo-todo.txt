@@ -44,7 +44,8 @@ enyo.kind({
             {name: "viewTitle", kind: "HtmlContent",
                 className: "todo-view-title", content: ""}
         ]},
-        {flex: 1, kind: "Pane", onSelectView: "viewSelected", components: [
+        {flex: 1, kind: "Pane", onSelectView: "viewSelected",
+            transitionKind: enyo.transitions.Simple, components: [
             {name: "listView", kind: "TodoList", onEdit: "showEditView",
                 onPrefs: "showPrefView", onReload: "refreshTodo"
             },
