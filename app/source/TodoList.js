@@ -23,6 +23,9 @@ enyo.kind({
         sortOrder: "pri",
         cacheChanges: "NO",
         searchFilter: null,
+        priorityList: [],
+        projectList: [],
+        contextList: [],
         sortedList: undefined
     },
     events: {
@@ -105,6 +108,35 @@ enyo.kind({
         var r = this.sortedList[inIndex];
 
         if (r) {
+            //TODO: currently not used, is it needed in future?
+            if (this.priorityListReset) {
+                this.priorityList = [];
+                this.priorityListReset = false;
+            }
+            if (r.pri) {
+                if (this.priorityList.indexOf(r.pri[0]) == -1) 
+                    this.priorityList.push(r.pri[0]);
+            } //TODO: end quetionable code
+            if (this.projectListReset) {
+                this.projectList  = [];
+                this.projectListReset = false;
+            }
+            var project = r.detail.match(/\+[^\s]+/);
+            if (project) {
+                project = project[0].replace(/\./,"");
+                if (this.projectList.indexOf(project) == -1)
+                    this.projectList.push(project);
+            }
+            if (this.contextListReset) {
+                this.contextList  = [];
+                this.contextListReset = false;
+            }
+            var context = r.detail.match(/\@[^\s]+/);
+            if (context) {
+                context = context[0].replace(/\./,"");
+                if (this.contextList.indexOf(context) == -1)
+                    this.contextList.push(context);
+            }
             var filtered = false;
             var s = r.detail.replace(/^x\s/,"");
             var s = s.replace(/^\([A-E]\)\s/,"");
@@ -134,6 +166,9 @@ enyo.kind({
                 this.$.todoRow.hide();
             }
             return true;
+        } else {
+            this.priorityListReset = true;
+            this.projectListReset = true;
         }
     },
 
@@ -186,6 +221,13 @@ enyo.kind({
     },
 
     updateTodoItem: function() {
+        if (this.owner.todoList[this.selectedId].pri) {
+            var pri = this.owner.todoList[this.selectedId].pri[0];
+            pri = pri.replace(/^\(([A-E])\)\s.*$/,"$1");
+            this.owner.$.editView.$.priGroup.setValue(pri);
+        } else {
+            this.owner.$.editView.$.priGroup.setValue("-");
+        }
         this.owner.$.editView.$.tododetail.setValue(this.owner.todoList[this.selectedId].detail);
         this.replaceItem = true;
         this.owner.showEditView();

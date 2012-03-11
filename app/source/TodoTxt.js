@@ -200,6 +200,7 @@ enyo.kind({
             this.$.viewTitle.setContent("update task");
         } else {
             this.$.viewTitle.setContent("add task");
+            this.$.editView.$.priGroup.setValue("-");
         }
         this.$.editView.$.tododetail.forceFocus();
     },
@@ -230,6 +231,7 @@ enyo.kind({
     },
 
     closeView: function() {
+        this.$.listView.setReplaceItem(false);
         this.$.editView.$.tododetail.setValue("");
         this.$.pane.selectViewByName("listView");
     },
