@@ -22,10 +22,13 @@ enyo.kind({
         "onSave": ""
     },
     components: [
-        {name: "insertPopup", kind: "ModalDialog", dismissWithClick: true,
+        {name: "insertPopup", kind: "Popup", dismissWithClick: false,
+            layoutKind: "VFlexLayout", height: "60%",
             components: [
+                {flex: 1, kind: "Scroller", components: [
                 {name: "projects", kind: "RowGroup", caption: "Projects"},
-                {name: "contexts", kind: "RowGroup", caption: "Contexts"},
+                {name: "contexts", kind: "RowGroup", caption: "Contexts"}
+                ]},
                 {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
         ]},
         {name: "filterToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
