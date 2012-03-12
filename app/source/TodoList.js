@@ -35,29 +35,42 @@ enyo.kind({
     },
     components: [
     
-        {name: "todoPopup", kind: "ModalDialog", components: [
-            {kind: "Button", caption: "Complete", onclick: "completeTodoItem"},
-            {kind: "Button", caption: "Prioritize", onclick: "showPriList"},
-            {kind: "Button", caption: "Update", onclick: "updateTodoItem"},
-            {kind: "Button", caption: "Delete", onclick: "deleteTodoItem"},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "todoPopup", kind: "ModalDialog", dismissWithClick: true,
+            onClose: "closePopup", components: [
+                {kind: "RowGroup", components: [
+                    {content:"Complete", onclick:"completeTodoItem",
+                        style: "text-align:center"},
+                    {content:"Prioritize", onclick:"showPriList",
+                        style: "text-align:center"},
+                    {content:"Update", onclick:"updateTodoItem",
+                        style: "text-align:center"},
+                    {content:"Delete", onclick:"deleteTodoItem",
+                        style: "text-align:center"}
+                ]}
         ]},
-        {name: "completedPopup", kind: "ModalDialog", components: [
-            {kind: "Button", caption: "Undo Complete", onclick: "undoCompleteTodoItem"},
-            {kind: "Button", caption: "Delete", onclick: "deleteTodoItem"},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "completedPopup", kind: "ModalDialog",
+            dismissWithClick: true, onClose: "closePopup", components: [
+                {kind: "RowGroup", components: [
+                    {content:"Undo Complete",
+                        onclick:"undoCompleteTodoItem",
+                        style: "text-align:center"},
+                    {content:"Delete", onclick:"deleteTodoItem",
+                        style: "text-align:center"}
+                ]}
         ]},
-        {name: "priorityPopup", kind: "ModalDialog", components: [
-            {kind: "HtmlContent", content: "Select priority"},
-            {kind: "RadioGroup", name: "priGroup", onChange: "setPriority", components: [
-                {caption: "-", value: "-"},
-                {caption: "A", value: "A"},
-                {caption: "B", value: "B"},
-                {caption: "C", value: "C"},
-                {caption: "D", value: "D"},
-                {caption: "E", value: "E"}
-            ]},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "priorityPopup", kind: "ModalDialog",
+            dismissWithClick: true, onClose: "closePopup", components: [
+                {kind: "RowGroup", caption:"Select Priority", components: [
+                    {kind: "RadioGroup", name: "priGroup",
+                        onChange: "setPriority", components: [
+                        {caption: "-", value: "-"},
+                        {caption: "A", value: "A"},
+                        {caption: "B", value: "B"},
+                        {caption: "C", value: "C"},
+                        {caption: "D", value: "D"},
+                        {caption: "E", value: "E"}
+                    ]}
+                ]}
         ]},
         {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch"},
         {flex: 1, kind: "Scroller", name: "scroller", components: [
@@ -290,11 +303,11 @@ enyo.kind({
     },
 
     closePopup: function() {
-        this.$.todoPopup.close();
-        this.$.completedPopup.close();
-        this.$.priorityPopup.close();
-        this.selectedIndex = null;
-        this.selectedId = null;
+        //this.$.todoPopup.close();
+        //this.$.completedPopup.close();
+        //this.$.priorityPopup.close();
+        //this.selectedIndex = null;
+        //this.selectedId = null;
         this.$.todoList.render();
     },
 
