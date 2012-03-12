@@ -26,9 +26,9 @@ enyo.kind({
             {caption: "Preferences", onclick: "showPrefView"},
             {caption: "About", onclick: "showAbout"}
         ]},
-        {kind: "Popup", name: "about", layoutKind: "VFlexLayout",
+        {kind: "ModalDialog", name: "about", layoutKind: "VFlexLayout",
             contentHeight: "100%", height: "80%", width: "80%",
-            components: [
+            dismissWithClick: true, components: [
             {name: "aboutTitle", content: ""},
             {content: "by Morgan McMillian"},
             {kind: "Divider", caption: "Version History"},

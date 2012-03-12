@@ -22,14 +22,15 @@ enyo.kind({
         "onSave": ""
     },
     components: [
-        {name: "insertPopup", kind: "Popup", dismissWithClick: false,
+        {name: "insertPopup", kind: "ModalDialog", dismissWithClick: true,
             layoutKind: "VFlexLayout", height: "60%",
+            contentHeight: "100%", onClose: "closePopup",
             components: [
-                {flex: 1, kind: "Scroller", components: [
+                {flex: 1, name: "iscroller", kind: "Scroller",
+                    components: [
                 {name: "projects", kind: "RowGroup", caption: "Projects"},
                 {name: "contexts", kind: "RowGroup", caption: "Contexts"}
-                ]},
-                {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+                ]}
         ]},
         {name: "filterToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [
@@ -93,6 +94,7 @@ enyo.kind({
             );
         }
         this.$.contexts.render();
+        this.$.iscroller.render();
     },
 
     closePopup: function() {
@@ -106,6 +108,7 @@ enyo.kind({
             eval("this.$."+name+".destroy()");
         }
         this.$.contexts.render();
+        this.$.tododetail.forceFocus();
         this.$.insertPopup.close();
     },
 
