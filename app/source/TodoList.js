@@ -140,7 +140,15 @@ enyo.kind({
     todoTap: function(inSender, inEvent) {
         this.selectedIndex = inEvent.rowIndex;
         if (this.selectedIndex != undefined) {
-            this.selectedId = this.sortedList[this.selectedIndex].num-1;
+            //this.selectedId = this.sortedList[this.selectedIndex].num-1;
+            var num = this.sortedList[this.selectedIndex].num;
+            function getIdx(list, num) {
+                for (var i=0; i<list.length; i++) {
+                    if (list[i].num == num)
+                        return i;
+                }
+            }
+            this.selectedId = getIdx(this.owner.todoList,num);
         }
         var r = this.sortedList[inEvent.rowIndex];
 
