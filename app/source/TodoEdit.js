@@ -45,7 +45,7 @@ enyo.kind({
                 {kind: "Button", caption: "+", onclick: "showInsert"}
             ]
         },
-        {flex: 1, kind: "Scroller", components: [
+        {flex: 1, name: "scroller", kind: "Scroller", components: [
             {kind: "RichText", name: "tododetail", richContent: false},
         ]},
         {name: "editToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",

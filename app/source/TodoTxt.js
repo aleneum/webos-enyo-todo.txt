@@ -96,6 +96,12 @@ enyo.kind({
         } else if (window.blackberry) {
             this.os = "BlackBerry";
             this.dirs = blackberry.io.dir.appDirs;
+            // hack for RichText not working properly
+            this.$.editView.$.tododetail.destroy();
+            this.$.editView.$.scroller.createComponent(
+                {kind: "Input", name: "tododetail", owner:this.$.editView}
+            );
+            this.$.editView.render();
         } else {
             this.os = "unknown";
         }
