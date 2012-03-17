@@ -311,9 +311,9 @@ enyo.kind({
     },
 
     closePopup: function() {
-        //this.$.todoPopup.close();
-        //this.$.completedPopup.close();
-        //this.$.priorityPopup.close();
+        this.$.todoPopup.close();
+        this.$.completedPopup.close();
+        this.$.priorityPopup.close();
         //this.selectedIndex = null;
         //this.selectedId = null;
         this.$.todoList.render();
