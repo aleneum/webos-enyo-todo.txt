@@ -141,10 +141,16 @@ enyo.kind({
             this.requestToken = tokens[1].split("=")[1];
 
             console.log("...launching browser window...");
-            this.$.launch.call({
+            if (this.owner.os == "BlackBerry") {
+                var args = new blackberry.invoke.BrowserArguments(url);
+                blackberry.invoke.invoke(
+                        blackberry.invoke.APP_BROWSER, args);
+            } else {
+                this.$.launch.call({
                     "id": "com.palm.app.browser",
                     "params": {"target": url}
-            });
+                });
+            }
         }
     },
 

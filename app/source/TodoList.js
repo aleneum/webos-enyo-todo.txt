@@ -23,6 +23,9 @@ enyo.kind({
         sortOrder: "pri",
         cacheChanges: "NO",
         searchFilter: null,
+        priorityList: [],
+        projectList: [],
+        contextList: [],
         sortedList: undefined
     },
     events: {
@@ -32,31 +35,44 @@ enyo.kind({
     },
     components: [
     
-        {name: "todoPopup", kind: "ModalDialog", components: [
-            {kind: "Button", caption: "Complete", onclick: "completeTodoItem"},
-            {kind: "Button", caption: "Prioritize", onclick: "showPriList"},
-            {kind: "Button", caption: "Update", onclick: "updateTodoItem"},
-            {kind: "Button", caption: "Delete", onclick: "deleteTodoItem"},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "todoPopup", kind: "ModalDialog", dismissWithClick: true,
+            onClose: "closePopup", components: [
+                {kind: "RowGroup", components: [
+                    {content:"Complete", onclick:"completeTodoItem",
+                        style: "text-align:center"},
+                    {content:"Prioritize", onclick:"showPriList",
+                        style: "text-align:center"},
+                    {content:"Update", onclick:"updateTodoItem",
+                        style: "text-align:center"},
+                    {content:"Delete", onclick:"deleteTodoItem",
+                        style: "text-align:center"}
+                ]}
         ]},
-        {name: "completedPopup", kind: "ModalDialog", components: [
-            {kind: "Button", caption: "Undo Complete", onclick: "undoCompleteTodoItem"},
-            {kind: "Button", caption: "Delete", onclick: "deleteTodoItem"},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "completedPopup", kind: "ModalDialog",
+            dismissWithClick: true, onClose: "closePopup", components: [
+                {kind: "RowGroup", components: [
+                    {content:"Undo Complete",
+                        onclick:"undoCompleteTodoItem",
+                        style: "text-align:center"},
+                    {content:"Delete", onclick:"deleteTodoItem",
+                        style: "text-align:center"}
+                ]}
         ]},
-        {name: "priorityPopup", kind: "ModalDialog", components: [
-            {kind: "HtmlContent", content: "Select priority"},
-            {kind: "RadioGroup", name: "priGroup", onChange: "setPriority", components: [
-                {caption: "-", value: "-"},
-                {caption: "A", value: "A"},
-                {caption: "B", value: "B"},
-                {caption: "C", value: "C"},
-                {caption: "D", value: "D"},
-                {caption: "E", value: "E"}
-            ]},
-            {kind: "Button", caption: "Dismiss", onclick: "closePopup"}
+        {name: "priorityPopup", kind: "ModalDialog",
+            dismissWithClick: true, onClose: "closePopup", components: [
+                {kind: "RowGroup", caption:"Select Priority", components: [
+                    {kind: "RadioGroup", name: "priGroup",
+                        onChange: "setPriority", components: [
+                        {caption: "-", value: "-"},
+                        {caption: "A", value: "A"},
+                        {caption: "B", value: "B"},
+                        {caption: "C", value: "C"},
+                        {caption: "D", value: "D"},
+                        {caption: "E", value: "E"}
+                    ]}
+                ]}
         ]},
-        {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch"},
+        {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch", className: "enyo-box-input"},
         {flex: 1, kind: "Scroller", name: "scroller", components: [
             {kind: "VirtualRepeater", name: "todoList",
                 onSetupRow: "getTodoList", onclick: "todoTap",
@@ -105,6 +121,35 @@ enyo.kind({
         var r = this.sortedList[inIndex];
 
         if (r) {
+            //TODO: currently not used, is it needed in future?
+            if (this.priorityListReset) {
+                this.priorityList = [];
+                this.priorityListReset = false;
+            }
+            if (r.pri) {
+                if (this.priorityList.indexOf(r.pri[0]) == -1) 
+                    this.priorityList.push(r.pri[0]);
+            } //TODO: end quetionable code
+            if (this.projectListReset) {
+                this.projectList  = [];
+                this.projectListReset = false;
+            }
+            var project = r.detail.match(/\+[^\s]+/);
+            if (project) {
+                project = project[0].replace(/\./,"");
+                if (this.projectList.indexOf(project) == -1)
+                    this.projectList.push(project);
+            }
+            if (this.contextListReset) {
+                this.contextList  = [];
+                this.contextListReset = false;
+            }
+            var context = r.detail.match(/\@[^\s]+/);
+            if (context) {
+                context = context[0].replace(/\./,"");
+                if (this.contextList.indexOf(context) == -1)
+                    this.contextList.push(context);
+            }
             var filtered = false;
             var s = r.detail.replace(/^x\s/,"");
             var s = s.replace(/^\([A-E]\)\s/,"");
@@ -134,6 +179,9 @@ enyo.kind({
                 this.$.todoRow.hide();
             }
             return true;
+        } else {
+            this.priorityListReset = true;
+            this.projectListReset = true;
         }
     },
 
@@ -194,6 +242,13 @@ enyo.kind({
     },
 
     updateTodoItem: function() {
+        if (this.owner.todoList[this.selectedId].pri) {
+            var pri = this.owner.todoList[this.selectedId].pri[0];
+            pri = pri.replace(/^\(([A-E])\)\s.*$/,"$1");
+            this.owner.$.editView.$.priGroup.setValue(pri);
+        } else {
+            this.owner.$.editView.$.priGroup.setValue("-");
+        }
         this.owner.$.editView.$.tododetail.setValue(this.owner.todoList[this.selectedId].detail);
         this.replaceItem = true;
         this.owner.showEditView();
@@ -259,8 +314,8 @@ enyo.kind({
         this.$.todoPopup.close();
         this.$.completedPopup.close();
         this.$.priorityPopup.close();
-        this.selectedIndex = null;
-        this.selectedId = null;
+        //this.selectedIndex = null;
+        //this.selectedId = null;
         this.$.todoList.render();
     },
 

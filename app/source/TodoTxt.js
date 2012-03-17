@@ -26,9 +26,9 @@ enyo.kind({
             {caption: "Preferences", onclick: "showPrefView"},
             {caption: "About", onclick: "showAbout"}
         ]},
-        {kind: "Popup", name: "about", layoutKind: "VFlexLayout",
+        {kind: "ModalDialog", name: "about", layoutKind: "VFlexLayout",
             contentHeight: "100%", height: "80%", width: "80%",
-            components: [
+            dismissWithClick: true, components: [
             {name: "aboutTitle", content: ""},
             {content: "by Morgan McMillian"},
             {kind: "Divider", caption: "Version History"},
@@ -44,7 +44,8 @@ enyo.kind({
             {name: "viewTitle", kind: "HtmlContent",
                 className: "todo-view-title", content: ""}
         ]},
-        {flex: 1, kind: "Pane", onSelectView: "viewSelected", components: [
+        {flex: 1, kind: "Pane", onSelectView: "viewSelected",
+            transitionKind: enyo.transitions.Simple, components: [
             {name: "listView", kind: "TodoList", onEdit: "showEditView",
                 onPrefs: "showPrefView", onReload: "refreshTodo"
             },
@@ -88,7 +89,23 @@ enyo.kind({
     ],
 
     ready: function() {
-        this.$.getConn.call();
+
+        if (window.PalmSystem) {
+            this.$.getConn.call();
+            this.os = "webOS";
+        } else if (window.blackberry) {
+            this.os = "BlackBerry";
+            this.dirs = blackberry.io.dir.appDirs;
+            // hack for RichText not working properly
+            this.$.editView.$.tododetail.destroy();
+            this.$.editView.$.scroller.createComponent(
+                {kind: "Input", name: "tododetail",
+                    className: "enyo-box-input", owner:this.$.editView}
+            );
+            this.$.editView.render();
+        } else {
+            this.os = "unknown";
+        }
 
         this.preferences = localStorage.getItem("TodoPreferences");
         if (this.preferences == undefined) {
@@ -124,7 +141,14 @@ enyo.kind({
             this.$.viewTitle.setContent("[offline]");
         }
 
-        this.$.makeDir.call({ path: "/media/internal/todo" });
+        if (this.os == "BlackBerry") {
+            var path = this.dirs.shared.documents.path + "/todo";
+            if (!blackberry.io.dir.exists(path)) {
+                blackberry.io.dir.createNewDir(path);
+            }
+        } else {
+            this.$.makeDir.call({ path: "/media/internal/todo" });
+        }
 
         this.todoList = [];
         this.refreshTodo();
@@ -183,6 +207,7 @@ enyo.kind({
             this.$.viewTitle.setContent("update task");
         } else {
             this.$.viewTitle.setContent("add task");
+            this.$.editView.$.priGroup.setValue("-");
         }
         this.$.editView.$.tododetail.forceFocus();
     },
@@ -213,12 +238,17 @@ enyo.kind({
     },
 
     closeView: function() {
+        this.$.listView.setReplaceItem(false);
         this.$.editView.$.tododetail.setValue("");
         this.$.pane.selectViewByName("listView");
     },
 
     parseFile: function(path, file) {
-        var todofile = file.content.split("\n");
+        if (file.content != undefined) {
+            todofile = file.content.split("\n");
+        } else {
+            todofile = "";
+        }
         this.todoList = [];
         for (line in todofile) {
             if (todofile[line]) {
@@ -242,8 +272,15 @@ enyo.kind({
         for (item in list) {
             data = data + list[item].detail + "\n";
         }
-        this.$.writeFile.call({
-                path: path, content: data });
+        if (this.os == "BlackBerry") {
+            if (blackberry.io.file.exists(path)) {
+                blackberry.io.file.deleteFile(path);
+            }
+            blackberry.io.file.saveFile(path,
+                blackberry.utils.stringToBlob(data));
+        } else {
+            this.$.writeFile.call({ path: path, content: data });
+        }
 
         if (this.preferences["storage"] == "dropbox" &&
             this.preferences["offline"] == false &&
@@ -285,7 +322,20 @@ enyo.kind({
     },
 
     getLocalFile: function() {
-        this.$.readFile.call({ path: this.preferences["filepath"] });
+        var path = this.preferences["filepath"];
+        if (this.os == "BlackBerry") {
+            if (blackberry.io.file.exists(path)) {
+                blackberry.io.file.readFile(path, 
+                    function(fpath, blob) {
+                        var data = blackberry.utils.blobToString(blob);
+                        appInstance.parseFile(null, {content: data});
+                    }
+                );
+            }
+        } else {
+            this.$.readFile.call({ path: path });
+            //this.$.readFile.call({ path: this.preferences["filepath"] });
+        }
     },
 
     loadDropbox: function(inSender, inResponse, inRequest) {
@@ -297,15 +347,25 @@ enyo.kind({
     },
 
     resetPreferences: function() {
+        localStorage.clear();
         this.preferences = new Object();
         this.preferences["storage"] = "file";
         this.preferences["offline"] = true;
-        this.preferences["filepath"] = "/media/internal/todo/todo.txt";
         this.preferences["dboxpath"] = "/todo";
+        if (this.os == "BlackBerry") {
+            var path = this.dirs.shared.documents.path + "/todo/todo.txt";
+            this.preferences["filepath"] = path;
+        } else {
+            this.preferences["filepath"] = "/media/internal/todo/todo.txt";
+        }
+
+        // reset the preferences pane
         this.$.preferenceView.$.offline.setChecked(true);
         this.$.preferenceView.$.dboxlogout.hide();
         this.$.preferenceView.$.dboxpathselect.hide();
         this.$.preferenceView.$.filepathselect.show();
+
+        // save preferences
         localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 

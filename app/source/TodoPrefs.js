@@ -82,7 +82,7 @@ enyo.kind({
                             }
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
-                        name: "dboxpathselect", showing: true,
+                        name: "dboxpathselect", showing: false,
                         components: [
                             {flex: 1, kind: "Input", name: "dboxpath",
                                 preferenceProperty: "dboxpath",
@@ -137,7 +137,11 @@ enyo.kind({
         if (inSender.preferenceProperty == "storage") {
             if (value == "file") {
                 //this.$.todoFilePicker.pickFile();
-                var mypath = "/media/internal/todo/todo.txt"
+                if (this.owner.os == "BlackBerry") {
+                    var mypath = this.owner.dirs.shared.documents.path + "/todo/todo.txt";
+                } else {
+                    var mypath = "/media/internal/todo/todo.txt"
+                }
                 this.owner.preferences["filepath"] = mypath;
                 this.$.filepath.setValue(mypath);
                 this.$.filepath.render();
