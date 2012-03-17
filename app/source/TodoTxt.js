@@ -99,7 +99,8 @@ enyo.kind({
             // hack for RichText not working properly
             this.$.editView.$.tododetail.destroy();
             this.$.editView.$.scroller.createComponent(
-                {kind: "Input", name: "tododetail", owner:this.$.editView}
+                {kind: "Input", name: "tododetail",
+                    className: "enyo-box-input", owner:this.$.editView}
             );
             this.$.editView.render();
         } else {

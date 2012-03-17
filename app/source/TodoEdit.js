@@ -47,7 +47,8 @@ enyo.kind({
             ]
         },
         {flex: 1, name: "scroller", kind: "Scroller", components: [
-            {kind: "RichText", name: "tododetail", richContent: false},
+            {kind: "RichText", name: "tododetail", richContent: false,
+                className: "enyo-box-input"},
         ]},
         {name: "editToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [

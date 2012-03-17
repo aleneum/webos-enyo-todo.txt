@@ -72,7 +72,7 @@ enyo.kind({
                     ]}
                 ]}
         ]},
-        {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch"},
+        {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch", className: "enyo-box-input"},
         {flex: 1, kind: "Scroller", name: "scroller", components: [
             {kind: "VirtualRepeater", name: "todoList",
                 onSetupRow: "getTodoList", onclick: "todoTap",
