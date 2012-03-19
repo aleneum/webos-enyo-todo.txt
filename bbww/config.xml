@@ -9,7 +9,7 @@
         xmlns:rim="http://www.blackberry.com/ns/widgets"
 	version="0.2.0.0">
 
-  <name>Todo.txt Enyo</name>
+  <name>Todo.txt Enyo beta</name>
 
   <author href="http://monkeystew.org" rim:copyright="Copyright 2012 Morgan McMillian">Morgan McMillian</author>
 
@@ -32,7 +32,7 @@
   <!-- Expose access to all URIs, including the file and http protocols -->
   <access subdomains="true" uri="*" />
 
-  <icon src="icon.png" />
+  <icon src="appicon.png" />
 
   <content src="appindex.html" />
 
