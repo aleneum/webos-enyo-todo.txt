@@ -57,6 +57,7 @@ enyo.kind({
                 onPrefReset: "resetPreferences"
             }
         ]},
+        {name: "toaster", kind: "HtmlContent"},
         {name: "dropbox", kind: "Dropbox",
             onAuthSuccess: "enableDropbox",
             onAuthFailure: "disableDropbox",
@@ -298,7 +299,7 @@ enyo.kind({
         if (inEvent.error) {
             console.log("error: "+inEvent.error.message);
         } else {
-            enyo.windows.addBannerMessage(inEvent.path + " saved", "{}");
+            this.showToast(inEvent.path + " saved");
             console.log(inEvent.path + " saved...");
             console.log(inEvent.bytes + " bytes...");
         }
@@ -377,7 +378,7 @@ enyo.kind({
         } else {
             console.log("went offline...");
             if (this.preferences["offline"] == false) {
-                enyo.windows.addBannerMessage("offline mode", "{}");
+                this.showToast("offline mode");
                 this.preferences["offline"] = true;
                 this.$.preferenceView.$.offline.setChecked(true);
             }
@@ -387,7 +388,7 @@ enyo.kind({
     fail: function(inSender, inResponse, inRequest) {
         console.log("error");
         console.log(JSON.stringify(inResponse));
-        enyo.windows.addBannerMessage(inResponse.error, "{}");
+        this.showToast(inResponse.error);
     },
 
     enableDropbox: function() {
@@ -413,6 +414,15 @@ enyo.kind({
         this.preferences["dboxtoken"] = "";
         this.preferences["dboxsecret"] = "";
         localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
+    },
+
+    showToast: function(message) {
+        this.$.toaster.setContent("<div id=\"toast\">" +
+                message + "</div>");
+        window.setTimeout(function () {
+            var toast = document.getElementById("toast");
+            toast.style.opacity = 0;
+        }, 1000);
     }
 
 });
