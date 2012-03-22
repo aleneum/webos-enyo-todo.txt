@@ -115,7 +115,11 @@ enyo.kind({
 
     insert: function(inSender, inEvent) {
         var val = this.$.tododetail.getValue();
-        this.$.tododetail.setValue(val + " " + inSender.content);
+        if (val.length == 0) {
+            this.$.tododetail.setValue(inSender.content);
+        } else {
+            this.$.tododetail.setValue(val + " " + inSender.content);
+        }
         this.closePopup();
         this.$.tododetail.forceFocus();
     }
