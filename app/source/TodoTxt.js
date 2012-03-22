@@ -299,7 +299,8 @@ enyo.kind({
         if (inEvent.error) {
             console.log("error: "+inEvent.error.message);
         } else {
-            this.showToast(inEvent.path + " saved");
+            //this.showToast(inEvent.path + " saved");
+            this.showToast("file saved");
             console.log(inEvent.path + " saved...");
             console.log(inEvent.bytes + " bytes...");
         }
