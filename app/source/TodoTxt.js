@@ -277,8 +277,16 @@ enyo.kind({
             if (blackberry.io.file.exists(path)) {
                 blackberry.io.file.deleteFile(path);
             }
-            blackberry.io.file.saveFile(path,
-                blackberry.utils.stringToBlob(data));
+            var result = "";
+            try {
+                blackberry.io.file.saveFile(path,
+                    blackberry.utils.stringToBlob(data));
+                result = "file saved";
+            } catch (e) {
+                console.log("err: " + e);
+                result = "err: " + e;
+            }
+            this.showToast(result);
         } else {
             this.$.writeFile.call({ path: path, content: data });
         }
