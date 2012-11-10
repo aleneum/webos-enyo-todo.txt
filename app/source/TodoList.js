@@ -261,10 +261,6 @@ enyo.kind({
         task.pri = null;
         task.detail = this.owner.$.editView.$.tododetail.getValue();
         task.detail = task.detail.replace(/(<\/?[A-Za-z][A-Za-z0-9]*>)+/g," ");
-        if (this.owner.preferences["dateTasks"] && !this.completeItem) {
-            var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
-            task.detail = dfmt.format(new Date()) + " " + task.detail;
-        }
         if (this.owner.preferences["storage"] != "none" && this.cacheChanges != "YES" && this.cacheChanges != "COMMIT") {
             console.log("saving backup");
             this.owner.saveFile(
@@ -278,6 +274,10 @@ enyo.kind({
             this.owner.todoList[this.selectedId].pri = task.detail.match(/^\([A-E]\)\s/);
             this.replaceItem = false;
         } else {
+            if (this.owner.preferences["dateTasks"] && !this.completeItem) {
+                var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
+                task.detail = dfmt.format(new Date()) + " " + task.detail;
+            }
             this.owner.todoList.push(task);
         }
         this.listRefresh();
