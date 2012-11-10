@@ -26,6 +26,7 @@ enyo.kind({
         priorityList: [],
         projectList: [],
         contextList: [],
+        filterList: [],
         sortedList: undefined
     },
     events: {
@@ -72,6 +73,42 @@ enyo.kind({
                     ]}
                 ]}
         ]},
+        {name: "filterPopup", kind: "ModalDialog", dismissWithClick: true,
+            layoutKind: "VFlexLayout", height: "60%",
+            contentHeight: "100%", onClose: "closePopup",
+            components: [
+                {flex: 1, name: "fscroller", kind: "Scroller",
+                    components: [
+                    {name: "projects", kind: "RowGroup", caption: "Projects",
+                        components: [
+                            {kind: "VirtualRepeater", name: "projFlist",
+                                onSetupRow: "getProjFilter", components: [
+                                    {kind: "Item", layoutKind: "HFlexLayout", name: "fprojRow",
+                                        components: [
+                                            {flex: 1, name: "fprojN"},
+                                            {kind: "CheckBox", name: "fprojC",
+                                                onChange: "changeFilter"}
+                                        ]}
+                                    ]}
+                    ]},
+                    {name: "contexts", kind: "RowGroup", caption: "Contexts",
+                        components: [
+                            {kind: "VirtualRepeater", name: "conFlist",
+                                onSetupRow: "getConFilter", components: [
+                                    {kind: "Item", layoutKind: "HFlexLayout", name: "fconRow",
+                                        components: [
+                                            {flex: 1, name: "fconN"},
+                                            {kind: "CheckBox", name: "fconC",
+                                                onChange: "changeFilter"}
+                                        ]}
+                                    ]}
+                    ]}
+                ]},
+                {layoutKind: "HFlexLayout", pack: "justify", components: [
+                    {flex: 1, kind: "Button", caption: "RESET", onclick: "resetFilter"},
+                    {flex: 1, kind: "Button", caption: "OK", onclick: "closePopup"}
+                    ]}
+        ]},
         {kind: "SearchInput", name: "searchbox", onchange: "searchList", onCancel: "clearSearch", className: "enyo-box-input"},
         {flex: 1, kind: "Scroller", name: "scroller", components: [
             {kind: "VirtualRepeater", name: "todoList",
@@ -103,7 +140,7 @@ enyo.kind({
                 {icon: "images/273-Add.png",
                     onclick: "doEdit", align: "right"},
                 {icon: "images/254-Funnel.png",
-                    onclick: "doFilter", align: "right"},
+                    onclick: "showFilters", align: "right"},
                 {icon: "images/156-Cycle.png",
                     onclick: "doReload", align: "right"},
                 {icon: "images/072-Settings.png",
@@ -152,13 +189,27 @@ enyo.kind({
                 if (this.contextList.indexOf(context) == -1)
                     this.contextList.push(context);
             }
+            
             var filtered = false;
             var s = r.detail.replace(/^x\s/,"");
             var s = s.replace(/^\([A-E]\)\s/,"");
-            var filter = new RegExp(this.searchFilter, "i");
-            if (this.search && s.match(filter)) {
+            var sfilter = new RegExp(this.searchFilter, "i");
+            if (this.search && s.match(sfilter)) {
                 filtered = true;
-            } else if (!this.search) {
+            }
+            if (this.filter) {
+                for (var fidx = 0; fidx < this.filterList.length; fidx++) {
+                    var ffilter = this.filterList[fidx];
+                    ffilter = ffilter.replace(/\+/,"\\+");
+                    var fregx = new RegExp(ffilter, "i");
+                    if (s.match(fregx) && !this.search) {
+                        filtered = true;
+                    } else if (s.match(fregx) && s.match(sfilter)) {
+                        filtered = true;
+                    }
+                }
+            }
+            if (!this.search && !this.filter) {
                 filtered = true;
             }
             if (this.owner.preferences["lineNumbers"]) {
@@ -316,6 +367,7 @@ enyo.kind({
         this.$.todoPopup.close();
         this.$.completedPopup.close();
         this.$.priorityPopup.close();
+        this.$.filterPopup.close();
         //this.selectedIndex = null;
         //this.selectedId = null;
         this.$.todoList.render();
@@ -423,6 +475,59 @@ enyo.kind({
     listRefresh: function() {
         this.sortedList = undefined;
         this.$.todoList.render();
+        this.$.filterPopup.render();
+    },
+    
+    showFilters: function() {
+        this.$.filterPopup.openAtCenter();
+        this.$.fscroller.scrollIntoView(0,0);
+    },
+    
+    getProjFilter: function(inSender, inIndex) {
+        if (inIndex < this.projectList.length) {
+            this.$.fprojN.setContent(this.projectList[inIndex]);
+            return true;
+        }
+    },
+    
+    getConFilter: function(inSender, inIndex) {
+        if (inIndex < this.contextList.length) {
+            this.$.fconN.setContent(this.contextList[inIndex]);
+            return true;
+        }
+    },
+    
+    changeFilter: function(inSender) {
+        filter = inSender.parent.children[0].content;
+        if (inSender.checked) {
+            console.log("got it");
+            console.log(filter);
+            this.filterList.push(filter);
+        } else {
+            var idx = this.filterList.indexOf(filter);
+            if (idx != -1) {
+                this.filterList.splice(idx, 1);
+            }
+        }
+        console.log(this.filterList.length);
+        console.log(this.filterList);
+        if (this.filterList.length > 0) {
+            this.filter = true;
+        } else {
+            this.filter = false;
+        }
+        this.$.scroller.scrollIntoView(0,0);
+        this.$.todoList.render();
+    },
+    
+    resetFilter: function() {
+        this.filterList = [];
+        this.filter = false;
+        this.$.scroller.scrollIntoView(0,0);
+        this.$.projFlist.render();
+        this.$.conFlist.render();
+        this.$.todoList.render();
+        this.$.filterPopup.close();
     }
 
 });
