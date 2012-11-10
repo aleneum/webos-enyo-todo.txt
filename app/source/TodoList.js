@@ -100,11 +100,13 @@ enyo.kind({
                     {caption: "ID Descending", value: "dsc"},
                     {caption: "Text (A-Z)", value: "az"}
                 ]},
-                {icon: "images/menu-icon-new.png",
+                {icon: "images/273-Add.png",
                     onclick: "doEdit", align: "right"},
-                {icon: "images/menu-icon-sync.png",
+                {icon: "images/254-Funnel.png",
+                    onclick: "doFilter", align: "right"},
+                {icon: "images/156-Cycle.png",
                     onclick: "doReload", align: "right"},
-                {icon: "images/menu-icon-prefs.png",
+                {icon: "images/072-Settings.png",
                     onclick: "doPrefs", align: "right"}
             ]
         },
