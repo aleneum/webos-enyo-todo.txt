@@ -6,6 +6,7 @@ A webOS application for managing your [todo.txt](http://todotxt.com) file writte
 Current Features
 ----------------
 
+* Filter by project or context
 * Set and sort by priority
 * Task completion (and optionally creation) dates
 * "Just Type" quick actions and universal search
@@ -15,7 +16,5 @@ Current Features
 Planned Features
 ----------------
 
-* Filter by project, context, priority
 * Tablet friendly UI
 * Additional cloud storage options
-
