@@ -20,6 +20,7 @@ enyo.kind({
     events: {
         "onClose": "",
         "onAbout": "",
+        "onArchive": "",
         "onPrefReset": ""
     },
     components: [
@@ -58,8 +59,19 @@ enyo.kind({
                             {kind: "CheckBox", name: "offline",
                                 preferenceProperty: "offline",
                                 onChange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout",
+                        components: [
+                            {content: "Auto archive"},
+                            {kind: "Spacer"},
+                            {kind: "CheckBox", name: "archive",
+                                preferenceProperty: "archive",
+                                onChange: "setPreference"}
                     ]}
                 ]},
+                {kind: "Button", caption: "Archive now", onclick: "doArchive",
+                    className: "enyo-button-dark"
+                },
                 {kind: "RowGroup", caption: "storage", components: [
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [

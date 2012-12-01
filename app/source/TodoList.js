@@ -280,6 +280,9 @@ enyo.kind({
         this.cacheChanges = "COMMIT";
         this.owner.addTodo();
         this.completeItem = false;
+        if (this.owner.preferences["archive"] == true) {
+            this.owner.autoarchive = true;
+        }
         this.$.todoPopup.close();
     },
 

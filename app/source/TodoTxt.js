@@ -54,7 +54,7 @@ enyo.kind({
             },
             {name: "preferenceView", kind: "TodoPrefs",
                 onClose: "closeView", onAbout: "showAbout",
-                onPrefReset: "resetPreferences"
+                onPrefReset: "resetPreferences", onArchive: "archiveTodo"
             }
         ]},
         {name: "toaster", kind: "HtmlContent"},
@@ -70,6 +70,11 @@ enyo.kind({
             service: "palm://com.monkeystew.todotxtenyo.beta.service/",
             method: "readfile",
             onSuccess: "parseFile", onFailure: "doNothing"
+        },
+        {name: "readDoneFile", kind: "PalmService",
+            service: "palm://com.monkeystew.todotxtenyo.beta.service/",
+            method: "readfile",
+            onSuccess: "loadArchive", onFailure: "doNothing"
         },
         {name: "writeFile", kind: "PalmService",
             service: "palm://com.monkeystew.todotxtenyo.beta.service/",
@@ -151,7 +156,10 @@ enyo.kind({
             this.$.makeDir.call({ path: "/media/internal/todo" });
         }
 
+        this.recount = 0;
+        this.autoarchive = false;
         this.todoList = [];
+        this.doneList = [];
         this.refreshTodo();
 
     },
@@ -187,6 +195,7 @@ enyo.kind({
     refreshTodo: function() {
         if (this.preferences["storage"] == "file") {
             this.getLocalFile();
+            this.getArchiveFile();
         } else if (this.preferences["storage"] == "dropbox") {
             if (this.preferences["offline"] == false) {
                 var dboxpath = this.preferences["dboxpath"];
@@ -195,6 +204,29 @@ enyo.kind({
                 console.log("working offline, loading local copy instead");
                 this.getLocalFile();
             }
+        }
+    },
+
+    archiveTodo: function() {
+        // TODO stub
+        for (item in this.todoList) {
+            if (this.todoList[item].detail.match(/^x\s/)) {
+                this.recount++;
+                this.doneList.push(this.todoList[item]);
+                this.todoList.splice(item, 1);
+                this.archiveTodo();
+                this.recount--;
+            }
+        }
+        if (this.recount == 0) {
+            console.log("done: "+this.doneList);
+            this.$.listView.listRefresh();
+            this.saveFile(
+                this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
+                this.doneList
+            );
+            this.saveFile(this.preferences["filepath"], this.todoList);
+            this.closeView();
         }
     },
 
@@ -245,6 +277,7 @@ enyo.kind({
     },
 
     parseFile: function(path, file) {
+        //console.log("path: " + path);
         if (file.content != undefined) {
             todofile = file.content.split("\n");
         } else {
@@ -311,6 +344,10 @@ enyo.kind({
             this.showToast("file saved");
             console.log(inEvent.path + " saved...");
             console.log(inEvent.bytes + " bytes...");
+            if (inEvent.path == this.preferences["filepath"] && this.autoarchive == true) {
+                this.autoarchive = false;
+                this.archiveTodo();
+            }
         }
     },
 
@@ -345,6 +382,28 @@ enyo.kind({
         } else {
             this.$.readFile.call({ path: path });
             //this.$.readFile.call({ path: this.preferences["filepath"] });
+        }
+    },
+
+    getArchiveFile: function() {
+        // TODO stub
+        var path = this.preferences["filepath"].replace(/todo\.txt/, "done.txt");
+        if (this.os == "BlackBerry") {
+            // TODO do something here
+        } else {
+            this.$.readDoneFile.call({ path: path });
+        }
+    },
+
+    loadArchive: function(path, file) {
+        // TODO stub
+        var list = file.content.split("\n");
+        for (item in list) {
+            if (list[item].length > 0) {
+                var task = new Object();
+                task.detail = list[item];
+                this.doneList.push(task);                
+            }
         }
     },
 

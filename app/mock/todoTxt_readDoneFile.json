@@ -1,0 +1,4 @@
+{ "returnValue": true,
+  "path": "/dummy",
+  "content": "x TEST ENTRY 1\nx TEST ENTRY 2\nx TEST ENTRY 3\nx TEST ENTRY 4\nx TEST ENTRY 5\n"
+}
