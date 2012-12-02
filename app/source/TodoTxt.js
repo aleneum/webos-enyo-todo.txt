@@ -200,6 +200,7 @@ enyo.kind({
             if (this.preferences["offline"] == false) {
                 var dboxpath = this.preferences["dboxpath"];
                 this.$.dropbox.getFile(dboxpath+"/todo.txt");
+                this.$.dropbox.getFile(dboxpath+"/done.txt");
             } else {
                 console.log("working offline, loading local copy instead");
                 this.getLocalFile();
@@ -327,7 +328,8 @@ enyo.kind({
         if (this.preferences["storage"] == "dropbox" &&
             this.preferences["offline"] == false &&
             this.dropboxRefresh == false) {
-            var filename = path.match(/todo\.txt.*/);
+            console.log("test:" + path.match(/(todo|done)\.txt.*/)[0]);
+            var filename = path.match(/(todo|done)\.txt.*/)[0];
             filename = this.preferences["dboxpath"]+"/"+filename;
             //var params = { overwrite: true };
             this.$.dropbox.putFile(filename, data);
@@ -408,11 +410,23 @@ enyo.kind({
     },
 
     loadDropbox: function(inSender, inResponse, inRequest) {
+        console.log("url:" + inRequest.url);
         var file = new Object();
         file.content = inResponse;
-        this.parseFile(null, file);
-        this.dropboxRefresh = true;
-        this.saveFile(this.preferences["filepath"], this.todoList);
+        if (inRequest.url.match(/todo\.txt/)) {
+            console.log("got the main file");
+            this.parseFile(null, file);
+            this.dropboxRefresh = true;
+            this.saveFile(this.preferences["filepath"], this.todoList);
+        } else if (inRequest.url.match(/done\.txt/)) {
+            console.log("got the done file");
+            this.loadArchive(null, file);
+            this.dropboxRefresh = true;
+            this.saveFile(
+                this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
+                this.doneList
+            );
+        }
     },
 
     resetPreferences: function() {
