@@ -9,6 +9,7 @@ Current Features
 * Filter by project or context
 * Set and sort by priority
 * Task completion (and optionally creation) dates
+* Archive completed tasks (done.txt)
 * "Just Type" quick actions and universal search
 * Internal storage support
 * Dropbox support

@@ -162,6 +162,8 @@ enyo.kind({
         this.doneList = [];
         this.refreshTodo();
 
+        console.log("things are ready");
+
     },
 
     launchParamsChanged: function() {
