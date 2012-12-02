@@ -392,6 +392,14 @@ enyo.kind({
         var path = this.preferences["filepath"].replace(/todo\.txt/, "done.txt");
         if (this.os == "BlackBerry") {
             // TODO do something here
+            if (blackberry.io.file.exists(path)) {
+                blackberry.io.file.readFile(path, 
+                    function(fpath, blob) {
+                        var data = blackberry.utils.blobToString(blob);
+                        appInstance.loadArchive(null, {content: data});
+                    }
+                );
+            }
         } else {
             this.$.readDoneFile.call({ path: path });
         }
