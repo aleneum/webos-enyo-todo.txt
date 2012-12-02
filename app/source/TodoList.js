@@ -280,9 +280,6 @@ enyo.kind({
         this.cacheChanges = "COMMIT";
         this.owner.addTodo();
         this.completeItem = false;
-        if (this.owner.preferences["archive"] == true) {
-            this.owner.autoarchive = true;
-        }
         this.$.todoPopup.close();
     },
 
@@ -338,6 +335,9 @@ enyo.kind({
         }
         this.listRefresh();
         if (this.owner.preferences["storage"] != "none" && this.cacheChanges != "START" && this.cacheChanges != "YES") {
+            if (this.owner.preferences["archive"] == true && this.completeItem) {
+                this.owner.autoarchive = true;
+            }
             console.log("saving list");
             this.owner.saveFile(
                 this.owner.preferences["filepath"], this.owner.todoList);
