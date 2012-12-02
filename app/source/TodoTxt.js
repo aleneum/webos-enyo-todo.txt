@@ -316,6 +316,10 @@ enyo.kind({
                 blackberry.io.file.saveFile(path,
                     blackberry.utils.stringToBlob(data));
                 result = "file saved";
+                if (path == this.preferences["filepath"] && this.autoarchive == true) {
+                    this.autoarchive = false;
+                    this.archiveTodo();
+                }
             } catch (e) {
                 console.log("err: " + e);
                 result = "err: " + e;
