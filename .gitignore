@@ -2,3 +2,5 @@
 *.ipk
 *.*~
 dropbox-auth.js
+build.properties
+build.number
