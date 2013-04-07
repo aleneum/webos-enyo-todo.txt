@@ -90,7 +90,7 @@ enyo.kind({
                             {flex: 1, kind: "Input", name: "filepath",
                                 preferenceProperty: "filepath",
                                 hint: "file path",
-                                disabled: true
+                                disabled: false
                             }
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",

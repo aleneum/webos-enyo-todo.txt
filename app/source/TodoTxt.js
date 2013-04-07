@@ -109,6 +109,7 @@ enyo.kind({
                     className: "enyo-box-input", owner:this.$.editView}
             );
             this.$.editView.render();
+            this.$.preferenceView.$.filepath.setDisabled(false);
         } else {
             this.os = "unknown";
         }
