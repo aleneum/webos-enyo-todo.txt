@@ -1,7 +1,7 @@
 {
-	"id": "com.monkeystew.todotxtenyo.beta",
-	"version": "0.4.1",
-	"vendor": "Monkeystew",
+	"id": "com.github.aleneum.todotxt",
+	"version": "0.6.0",
+	"vendor": "aleneum",
 	"type": "web",
 	"main": "index.html",
 	"title": "Todo.txt Enyo beta",
@@ -10,12 +10,12 @@
     "universalSearch": {
         "search": {
             "displayName":"Todo.txt Enyo",
-            "url":"com.monkeystew.todotxtenyo.beta",
+            "url":"com.github.aleneum.todotxt",
             "launchParam":"search"
         },
         "action": {
             "displayName":"New todo.txt task",
-            "url":"com.monkeystew.todotxtenyo.beta",
+            "url":"com.github.aleneum.todotxt",
             "launchParam":"addTodoText"
         }
     }

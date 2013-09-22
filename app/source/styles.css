@@ -1,9 +1,24 @@
 /*Your CSS here*/
 /* TODO: retheme this whole bloddy mess */
-.todo-header {
+.enyo-header {
+/*    background-color: #448820;*/
     background-color: #448820;
     color: white;
 }
+
+#todoTxt_listView_todoList {
+    background-color: white;
+}
+
+.enyo-toolbar {
+    color: white;
+    background-color: #448820;
+}
+
+.todo-entry{
+    background-color: white;
+}
+
 .todo-view-title {
     font-size: 90%;
 }
@@ -11,14 +26,21 @@
     width: 320px;
     margin: 23px auto 0;
 }
+
 .left-col {
-    margin-right: 7px;
     color: #777777;
 }
 .mid-col {
-    margin-right: 5px;
+    font-weight: bold;
 }
-.pri-a { color: yellow; }
+.bot-row {
+    font-size:12px;
+    font-weight: bold;
+}
+.top-row {
+    font-size:10px;
+}
+.pri-a { color: red; }
 .pri-b { color: green; }
 .pri-c { color: slateblue; }
 .dialog-fix {

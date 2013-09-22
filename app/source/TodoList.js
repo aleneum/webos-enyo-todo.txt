@@ -114,12 +114,23 @@ enyo.kind({
             {kind: "VirtualRepeater", name: "todoList",
                 onSetupRow: "getTodoList", onclick: "todoTap",
                 components: [
-                    {kind: "SwipeableItem", onConfirm: "deleteTodo",
-                        layoutKind: enyo.HFlexLayout, tapHighlight: true, name: "todoRow",
+                    {kind: "SwipeableItem", onConfirm: "deleteTodo", className: "todo-entry",
+                        layoutKind: "enyo.HFlexLayout", tapHighlight: true, name: "todoRow",
+                        align:"center",
                         components: [
                             {name: "lineNum", className: "left-col"},
-                            {name: "priority", className: "mid-col"},
-                            {flex: 1, name: "todoItem"}
+                             {layoutKind: "enyo.VFlexLayout",
+                                components: [
+                                    {name: "dateRow", className: "top-row"},                 
+                                    {layoutKind: "enyo.HFlexLayout",
+                                        components: [
+                                            {name: "priority", className: "mid-col"},  
+                                            {name: "todoItem"} 
+                                        ]
+                                    },
+                                    {name: "infoRow", className: "bot-row"}
+                                ]
+                            }
                         ]
                     }
                 ]
@@ -137,13 +148,21 @@ enyo.kind({
                     {caption: "ID Descending", value: "dsc"},
                     {caption: "Text (A-Z)", value: "az"}
                 ]},
-                {icon: "images/273-Add.png",
+                // {icon: "images/273-Add.png",
+                //     onclick: "doEdit", align: "right"},
+                // {icon: "images/254-Funnel.png",
+                //     onclick: "showFilters", align: "right"},
+                // {name:"syncButton", icon: "images/156-Cycle.png",
+                //     onclick: "doReload", align: "right"},
+                // {icon: "images/072-Settings.png",
+                //     onclick: "doPrefs", align: "right"}
+                {icon: "images/aadd.png",
                     onclick: "doEdit", align: "right"},
-                {icon: "images/254-Funnel.png",
+                {icon: "images/afind.png",
                     onclick: "showFilters", align: "right"},
-                {icon: "images/156-Cycle.png",
+                {name:"syncButton", icon: "images/arefresh.png",
                     onclick: "doReload", align: "right"},
-                {icon: "images/072-Settings.png",
+                {icon: "images/apref.png",
                     onclick: "doPrefs", align: "right"}
             ]
         },
@@ -160,68 +179,73 @@ enyo.kind({
         var r = this.sortedList[inIndex];
 
         if (r) {
-            //TODO: currently not used, is it needed in future?
-            if (this.priorityListReset) {
-                this.priorityList = [];
-                this.priorityListReset = false;
-            }
-            if (r.pri) {
-                if (this.priorityList.indexOf(r.pri[0]) == -1) 
-                    this.priorityList.push(r.pri[0]);
-            } //TODO: end quetionable code
             if (this.projectListReset) {
                 this.projectList  = [];
                 this.projectListReset = false;
             }
-            var project = r.detail.match(/\+[^\s]+/);
-            if (project) {
-                project = project[0].replace(/\./,"");
-                if (this.projectList.indexOf(project) == -1)
-                    this.projectList.push(project);
+            if (r.pro.length > 0) {
+                for (i in r.pro) {
+                    if (this.projectList.indexOf(r.pro[i]) == -1) {
+                        this.projectList.push(r.pro[i]);
+                    }
+                }
             }
             if (this.contextListReset) {
                 this.contextList  = [];
                 this.contextListReset = false;
             }
-            var context = r.detail.match(/\@[^\s]+/);
-            if (context) {
-                context = context[0].replace(/\./,"");
-                if (this.contextList.indexOf(context) == -1)
-                    this.contextList.push(context);
+            if (r.con.length > 0) {
+                for (i in r.con) {
+                    if (this.contextList.indexOf(r.con[i]) == -1) {
+                        this.contextList.push(r.con[i]);
+                    }
+                }
             }
             
             var filtered = false;
-            var s = r.detail.replace(/^x\s/,"");
-            var s = s.replace(/^\([A-E]\)\s/,"");
             var sfilter = new RegExp(this.searchFilter, "i");
-            if (this.search && s.match(sfilter)) {
-                filtered = true;
-            }
+            //console.log(JSON.stringify(r));
+            var s = r.detail + r.pro.join(" ") + r.con.join(" ");
+
             if (this.filter) {
                 for (var fidx = 0; fidx < this.filterList.length; fidx++) {
                     var ffilter = this.filterList[fidx];
                     ffilter = ffilter.replace(/\+/,"\\+");
                     var fregx = new RegExp(ffilter, "i");
+                    //console.log(this.search);
+                    //console.log(sfilter);
                     if (s.match(fregx) && !this.search) {
                         filtered = true;
                     } else if (s.match(fregx) && s.match(sfilter)) {
                         filtered = true;
                     }
                 }
-            }
-            if (!this.search && !this.filter) {
+            } else if (!this.search) {
+                filtered = true;
+            } else if (s.match(sfilter)) {
                 filtered = true;
             }
             if (this.owner.preferences["lineNumbers"]) {
                 this.$.lineNum.setContent(r.num);
+                this.$.lineNum.addStyles("margin-right:6px");
             }
-            this.$.priority.setContent(r.pri);
-            var pri = r.detail.replace(/^\(([A-E])\)\s.*$/,"$1");
-            if (r.pri == "(A) ") this.$.priority.addClass("pri-a");
-            if (r.pri == "(B) ") this.$.priority.addClass("pri-b");
-            if (r.pri == "(C) ") this.$.priority.addClass("pri-c");
-            this.$.todoItem.setContent(s);
-            if (r.detail.match(/^x\s/)) {
+            if (r.pri == "(A)") this.$.priority.addClass("pri-a");
+            if (r.pri == "(B)") this.$.priority.addClass("pri-b");
+            if (r.pri == "(C)") this.$.priority.addClass("pri-c");
+            if (r.pri) {
+                this.$.priority.setContent(r.pri[1]);
+                this.$.priority.addStyles("margin-right:6px");
+            }
+            this.$.todoItem.setContent(r.detail);
+            this.$.infoRow.setContent([r.pro.join(" "),r.con.join(" ")].join(" "));
+            if (r.begin) {
+                // 1000 * 60 * 60 * 24 = 86400000 (ms * s * m * h)
+                var startDate = new Date(r.begin);
+                var endDate = new Date();
+                days_passed = (endDate - startDate) / 86400000;
+                this.$.dateRow.setContent(["Added",Math.floor(days_passed),"days ago"].join(" "));
+            }
+            if (r.done == "x") {
                 this.$.todoItem.addStyles("text-decoration:line-through;");
                 this.$.todoItem.addClass("completed-item");
             }
@@ -254,9 +278,8 @@ enyo.kind({
         var r = this.sortedList[inEvent.rowIndex];
 
         if (r) {
-            var completed = r.detail.match(/^x\s/);
             var quick = this.owner.preferences["quickComplete"];
-            if (completed) {
+            if (r.done == "x") {
                 this.$.completedPopup.openAtCenter();
             } else if (quick) {
                 this.completeTodoItem();
@@ -268,53 +291,48 @@ enyo.kind({
     },
 
     completeTodoItem: function() {
-        this.completeItem = true;
+        this.owner.saveFile(
+                this.owner.preferences["filepath"]+".bak", this.owner.todoList);
         var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
-        this.cacheChanges = "START";
-        this.clearPriority();
-        this.owner.$.editView.$.tododetail.setValue(
-            "x " + dfmt.format(new Date()) + " " +
-                this.owner.todoList[this.selectedId].detail
-        );
-        this.replaceItem = true;
-        this.cacheChanges = "COMMIT";
-        this.owner.addTodo();
-        this.completeItem = false;
+        //this.owner.todoList[this.selectedId].detail =
+        //    dfmt.format(new Date()) + " " +
+        //    this.owner.todoList[this.selectedId].detail;
+        this.owner.todoList[this.selectedId].done = "x";
+        this.owner.todoList[this.selectedId].end = dfmt.format(new Date());
+        this.owner.saveFile(
+                this.owner.preferences["filepath"], this.owner.todoList);
         this.$.todoPopup.close();
     },
 
     undoCompleteTodoItem: function() {
-        this.completeItem = true;
-        this.owner.$.editView.$.tododetail.setValue(
-            this.owner.todoList[this.selectedId].detail.replace(/^x\s[0-9]{4}-[0-9]{2}-[0-9]{2}\s/,"")
-        );
-        this.replaceItem = true;
-        this.owner.addTodo();
-        this.completeItem = false;
+        this.owner.saveFile(
+                this.owner.preferences["filepath"]+".bak", this.owner.todoList);
+        //this.owner.todoList[this.selectedId].detail = 
+        //    this.owner.todoList[this.selectedId].detail.replace(/^x\s[0-9]{4}-[0-9]{2}-[0-9]{2}\s/,"");
+        this.owner.todoList[this.selectedId].done = undefined;
+        this.owner.todoList[this.selectedId].end = undefined;
+        this.owner.saveFile(
+                this.owner.preferences["filepath"], this.owner.todoList);  
         this.closePopup();
     },
 
     updateTodoItem: function() {
-        if (this.owner.todoList[this.selectedId].pri) {
-            var pri = this.owner.todoList[this.selectedId].pri[0];
-            pri = pri.replace(/^\(([A-E])\)\s.*$/,"$1");
-            this.owner.$.editView.$.priGroup.setValue(pri);
+        var task = this.owner.todoList[this.selectedId];
+        if (task.pri) {
+            this.owner.$.editView.$.priGroup.setValue(task.pri[1]);
         } else {
             this.owner.$.editView.$.priGroup.setValue("-");
         }
-        this.owner.$.editView.$.tododetail.setValue(this.owner.todoList[this.selectedId].detail);
+        this.owner.$.editView.$.tododetail.setValue(task.toString());
         this.replaceItem = true;
         this.owner.showEditView();
         this.$.todoPopup.close();
     },
 
     addTodo: function() {
-        var task = new Object();
-        task.num = this.owner.todoList.length + 1;
-        task.pri = null;
-        task.detail = this.owner.$.editView.$.tododetail.getValue();
-        task.detail = task.detail.replace(/(<\/?[A-Za-z][A-Za-z0-9]*>)+/g," ");
-        if (this.owner.preferences["storage"] != "none" && this.cacheChanges != "YES" && this.cacheChanges != "COMMIT") {
+        //task.detail = this.owner.$.editView.$.tododetail.getValue();
+        //task.detail = task.detail.replace(/(<\/?[A-Za-z][A-Za-z0-9]*>)+/g," ");
+        if (this.cacheChanges != "YES" && this.cacheChanges != "COMMIT") {
             console.log("saving backup");
             this.owner.saveFile(
                 this.owner.preferences["filepath"]+".bak", this.owner.todoList);
@@ -323,21 +341,23 @@ enyo.kind({
             }
         }
         if (this.replaceItem) {
-            this.owner.todoList[this.selectedId].detail = task.detail;
-            this.owner.todoList[this.selectedId].pri = task.detail.match(/^\([A-E]\)\s/);
+            var task = this.owner.parseTask(this.owner.$.editView.$.tododetail.getValue());
+            task.num = this.owner.todoList[this.selectedId].num
+            task.begin = this.owner.todoList[this.selectedId].begin
+            this.owner.todoList[this.selectedId] = task;
             this.replaceItem = false;
         } else {
+            var txt = this.owner.$.editView.$.tododetail.getValue();
+            var task = this.owner.parseTask(txt);
             if (this.owner.preferences["dateTasks"] && !this.completeItem) {
                 var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
-                task.detail = dfmt.format(new Date()) + " " + task.detail;
+                task.begin = dfmt.format(new Date());
             }
+            task.num = this.owner.todoList.length + 1;
             this.owner.todoList.push(task);
         }
         this.listRefresh();
-        if (this.owner.preferences["storage"] != "none" && this.cacheChanges != "START" && this.cacheChanges != "YES") {
-            if (this.owner.preferences["archive"] == true && this.completeItem) {
-                this.owner.autoarchive = true;
-            }
+        if (this.cacheChanges != "START" && this.cacheChanges != "YES") {
             console.log("saving list");
             this.owner.saveFile(
                 this.owner.preferences["filepath"], this.owner.todoList);
@@ -354,16 +374,10 @@ enyo.kind({
     },
 
     deleteTodo: function(inSender, inIndex) {
-        if (this.owner.preferences["storage"] != "none") {
-            this.owner.saveFile(
-                this.owner.preferences["filepath"]+".bak", this.owner.todoList);
-        }
+        this.owner.saveFile(this.owner.preferences["filepath"]+".bak", this.owner.todoList);
         this.owner.todoList.splice(inIndex, 1);
         this.listRefresh();
-        if (this.owner.preferences["storage"] != "none") {
-            this.owner.saveFile(
-                this.owner.preferences["filepath"], this.owner.todoList);
-        }
+        this.owner.saveFile(this.owner.preferences["filepath"], this.owner.todoList);
     },
 
     closePopup: function() {
@@ -378,42 +392,34 @@ enyo.kind({
 
     showPriList: function() {
         var r = this.sortedList[this.selectedIndex];
-
         this.$.todoPopup.close();
         this.$.priorityPopup.openAtCenter();
-        if (r.detail.match(/^\(([A-E])\)\s/)) {
-            var pri = r.detail.replace(/^\(([A-E])\)\s.*$/,"$1");
-            this.$.priGroup.setValue(pri);
+        if (r.pri != undefined) {
+            this.$.priGroup.setValue(r.pri[1]);
         } else {
-            this.$.priGroup.setValue(pri);
+            this.$.priGroup.setValue("-");
         }
     },
 
     setPriority: function(inSender) {
         var val = inSender.getValue();
-        this.clearPriority();
         if (val.match(/[A-E]/)) {
-            this.owner.$.editView.$.tododetail.setValue(
-                "(" + val + ") " + this.owner.todoList[this.selectedId].detail);
-            this.replaceItem = true;
-            this.addTodo();
+            this.owner.todoList[this.selectedId].pri = "(" + val + ")";
+        } else {
+            this.owner.todoList[this.selectedId].pri = undefined;
         }
         this.$.priorityPopup.close();
     },
 
-    clearPriority: function() {
-        this.owner.$.editView.$.tododetail.setValue(
-            this.owner.todoList[this.selectedId].detail.replace(/^\([A-E]\)\s/,"")
-        );
-        this.replaceItem = true;
-        this.owner.addTodo();
-    },
-
     searchList: function(inSender) {
         this.searchFilter = inSender.getValue();
-        this.searchFilter = this.searchFilter.replace(/\+/,"\\+");
-        //console.log(this.searchFilter);
-        this.search = true;
+        if (this.searchFilter.length > 0) {
+            this.searchFilter = this.searchFilter.replace(/\+/,"\\+");
+            //console.log(this.searchFilter);
+            this.search = true;
+        } else {
+            this.search = false;
+        }
         this.$.scroller.scrollIntoView(0,0);
         this.$.todoList.render();
     },
@@ -428,19 +434,19 @@ enyo.kind({
         this.sortOrder = inValue;
         if (inValue == "pri") {
             this.sortedList.sort(function (a,b) {
-                if (!a["pri"] && a["detail"].match(/^x\s/)) {
+                if (!a.pri && a.done=="x") {
                     checka = "-";
-                } else if (!a["pri"]) {
+                } else if (!a.pri) {
                     checka = "+";
                 } else {
-                    checka = a["pri"];
+                    checka = a.pri;
                 }
-                if (!b["pri"] && b["detail"].match(/^x\s/)) {
+                if (!b.pri && b.done=="x") {
                     checkb = "-";
-                } else if (!b["pri"]) {
+                } else if (!b.pri) {
                     checkb = "+";
                 } else {
-                    checkb = b["pri"];
+                    checkb = b.pri;
                 }
                 if (checka < checkb) return -1;
                 if (checka > checkb) return 1;
@@ -449,22 +455,22 @@ enyo.kind({
             this.$.todoList.render();
         } else if (inValue == "asc") {
             this.sortedList.sort(function (a,b) {
-                if (a["num"] < b["num"]) return -1;
-                if (a["num"] > b["num"]) return 1;
+                if (a.num < b.num) return -1;
+                if (a.num > b.num) return 1;
                 return 0;
             });
             this.$.todoList.render();
         } else if (inValue == "dsc") {
             this.sortedList.sort(function (a,b) {
-                if (a["num"] > b["num"]) return -1;
-                if (a["num"] < b["num"]) return 1;
+                if (a.num > b.num) return -1;
+                if (a.num < b.num) return 1;
                 return 0;
             });
             this.$.todoList.render();
         } else if (inValue == "az") {
             this.sortedList.sort(function (a,b) {
-                var checka = a["detail"].replace(/^\([A-E]\)\s/,"");
-                var checkb = b["detail"].replace(/^\([A-E]\)\s/,"");
+                var checka = a.detail;
+                var checkb = b.detail;
                 if (checka < checkb) return -1;
                 if (checka > checkb) return 1;
                 return 0;
@@ -503,8 +509,8 @@ enyo.kind({
     changeFilter: function(inSender) {
         filter = inSender.parent.children[0].content;
         if (inSender.checked) {
-            console.log("got it");
-            console.log(filter);
+            //console.log("got it");
+            //console.log(filter);
             this.filterList.push(filter);
         } else {
             var idx = this.filterList.indexOf(filter);
@@ -512,8 +518,8 @@ enyo.kind({
                 this.filterList.splice(idx, 1);
             }
         }
-        console.log(this.filterList.length);
-        console.log(this.filterList);
+        //console.log(this.filterList.length);
+        //console.log(this.filterList);
         if (this.filterList.length > 0) {
             this.filter = true;
         } else {

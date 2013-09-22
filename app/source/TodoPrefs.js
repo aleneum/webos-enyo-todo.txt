@@ -30,6 +30,20 @@ enyo.kind({
                 {kind: "RowGroup", caption: "todo.txt", components: [
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [
+                            {content: "Encryption"},
+                            {kind: "Spacer"},
+                            {kind: "CheckBox", name: "encrypted",
+                                preferenceProperty: "encrypted",
+                                onChange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout", name: "pwcontainer", showing: false,
+                        components: [
+                            {flex: 1, kind: "PasswordInput", name: "password",
+                                preferenceProperty: "password", hint: "secret password",
+                                onchange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout",
+                        components: [
                             {content: "Show line numbers"},
                             {kind: "Spacer"},
                             {kind: "CheckBox", name: "lineNumbers",
@@ -51,22 +65,6 @@ enyo.kind({
                             {kind: "CheckBox", name: "quickComplete",
                                 preferenceProperty: "quickComplete",
                                 onChange: "setPreference"}
-                    ]},
-                    {kind: "Item", layoutKind: "HFlexLayout",
-                        components: [
-                            {content: "Work offline"},
-                            {kind: "Spacer"},
-                            {kind: "CheckBox", name: "offline",
-                                preferenceProperty: "offline",
-                                onChange: "setPreference"}
-                    ]},
-                    {kind: "Item", layoutKind: "HFlexLayout",
-                        components: [
-                            {content: "Auto archive"},
-                            {kind: "Spacer"},
-                            {kind: "CheckBox", name: "archive",
-                                preferenceProperty: "archive",
-                                onChange: "setPreference"}
                     ]}
                 ]},
                 {kind: "Button", caption: "Archive now", onclick: "doArchive",
@@ -75,47 +73,32 @@ enyo.kind({
                 {kind: "RowGroup", caption: "storage", components: [
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [
-                            {flex: 1, kind: "ListSelector", name: "storage",
-                                preferenceProperty: "storage",
-                                onChange: "setPreference",
-                                items: [
-                                {caption: "No Storage", value: "none"},
-                                {caption: "Internal Storage", value: "file"},
-                                {caption: "Dropbox", value: "dropbox"}
-                            ]}
-                    ]},
-                    {kind: "Item", layoutKind: "HFlexLayout",
-                        name: "filepathselect", showing: true,
-                        components: [
                             {flex: 1, kind: "Input", name: "filepath",
                                 preferenceProperty: "filepath",
+                                onchange: "setPreference",
                                 hint: "file path",
                                 disabled: false
                             }
-                    ]},
+                        ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
-                        name: "dboxpathselect", showing: false,
+                        name: "dboxlogin", showing: true,
                         components: [
-                            {flex: 1, kind: "Input", name: "dboxpath",
-                                preferenceProperty: "dboxpath",
-                                hint: "Dropbox path",
-                                onchange: "setPreference",
-                                disabled: false
+                            {flex: 1, kind: "Button",
+                                caption: "enable Dropbox sync",
+                                className: "enyo-button-affirmative",
+                                onclick: "autherizeDropbox"
                             }
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
                         name: "dboxlogout", showing: false,
                         components: [
                             {flex: 1, kind: "Button",
-                                caption: "Log out of Dropbox",
+                                caption: "disable Dropbox sync",
                                 className: "enyo-button-negative",
                                 onclick: "clearDropbox"
                             }
                     ]}
                 ]},
-                {kind: "Button", caption: "About", onclick: "doAbout",
-                    className: "enyo-button-dark"
-                },
                 {kind: "Button", caption: "Reset Prefs", onclick: "doPrefReset",
                     className: "enyo-button-dark"
                 }
@@ -135,46 +118,24 @@ enyo.kind({
     ],
 
     setPreference: function(inSender, inEvent, inValue) {
-        //var value = (inSender.kind === "CheckBox") ? inSender.getChecked() : inValue;
+        //console.log("inValue: " + inValue);
+        //console.log("kind: " + inSender.kind);
         if (inSender.kind === "CheckBox") {
             value = inSender.getChecked();
-        } else if (inSender.kind === "Input") {
+        } else if ((inSender.kind === "Input") || (inSender.kind === "PasswordInput")) {
             value = inValue;
         } else {
             value = inEvent;
         }
-        
         this.owner.preferences[inSender.preferenceProperty] = value;
-
-        if (inSender.preferenceProperty == "storage") {
-            if (value == "file") {
-                //this.$.todoFilePicker.pickFile();
-                if (this.owner.os == "BlackBerry") {
-                    var mypath = this.owner.dirs.shared.documents.path + "/todo/todo.txt";
-                } else {
-                    var mypath = "/media/internal/todo/todo.txt"
-                }
-                this.owner.preferences["filepath"] = mypath;
-                this.$.filepath.setValue(mypath);
-                this.$.filepath.render();
-                this.$.dboxlogout.hide();
-                this.owner.preferences["offline"] = true;
-                this.owner.$.preferenceView.$.offline.setChecked(true);
-                this.owner.refreshTodo();
-            } else if (value == "dropbox") {
-                this.owner.$.dropbox.validateAccess();
-            } else {
-                this.owner.preferences["filepath"] = "";
-                this.$.filepath.setValue("");
-                this.$.filepath.render();
-                this.$.dboxlogout.hide();
-                this.owner.preferences["offline"] = true;
-                this.owner.$.preferenceView.$.offline.setChecked(true);
-            }
-        } else if (inSender.preferenceProperty == "dboxpath") {
-            //console.log(this.owner.preferences["dboxpath"]);
-            this.owner.dropboxRefresh = true;
+        if (inSender.preferenceProperty == "filepath") {
             this.owner.refreshTodo();
+        } else if (inSender.preferenceProperty == "encrypted") {
+            if (this.owner.preferences["encrypted"] == true) {
+                this.$.pwcontainer.show();
+            } else {
+                this.$.pwcontainer.hide();
+            }
         }
 
         localStorage.setItem("TodoPreferences", JSON.stringify(this.owner.preferences));
@@ -197,13 +158,14 @@ enyo.kind({
         this.owner.preferences["dboxtoken"] = "";
         this.owner.preferences["dboxsecret"] = "";
         this.owner.preferences["dboxname"] = "";
-        this.owner.preferences["dboxrev"] = "";
-        this.owner.preferences["storage"] = "file";
-        this.owner.preferences["offline"] = true;
-        this.owner.$.preferenceView.$.offline.setChecked(true);
+        this.owner.$.dropbox.reset();
         localStorage.setItem("TodoPreferences", JSON.stringify(this.owner.preferences));
-        this.$.storage.setValue("file");
         this.$.dboxlogout.hide();
+        this.$.dboxlogin.show();
+    },
+
+    autherizeDropbox: function() {
+        this.owner.$.dropbox.validateAccess();
     }
 
 });

@@ -59,7 +59,7 @@ enyo.kind({
          * See the following URL for the additional details.
          * https://www.dropbox.com/developers/reference/api
          */
-        this.root = "dropbox";
+        this.root = "sandbox";
 
         /* The following two properties are contained in the
          * dropbox-auth.js file.  Dropbox will NOT work unless you
@@ -77,7 +77,6 @@ enyo.kind({
      * onFailure - callback function when web service call has failed
      */
     dropboxCall: function(url, params, body, method, onSuccess, onFailure) {
-
         var token = (this.authorized) ? this.token : this.requestToken;
         var secret = (this.authorized) ? this.tokenSecret : this.requestSecret;
 
@@ -105,7 +104,8 @@ enyo.kind({
             body = post;
             requrl = url;
         }
-
+        //console.log(requrl);
+        //console.log(body);
         this.$.webSrv.setUrl(requrl);
         this.$.webSrv.setMethod(method);
         this.$.webSrv.onSuccess = onSuccess;
@@ -128,11 +128,14 @@ enyo.kind({
 
     startTokenRequest: function() {
         var url = this.apiURL + "/oauth/request_token";
+        console.log("startTokenRequest")
         this.dropboxCall(url, {}, "", "POST",
             "processRequestToken", "doAuthFailure");
     },
 
     processRequestToken: function(inSender, inResponse, inRequest) {
+        console.log("processRequestToken");
+        console.log(inResponse);
         if (inResponse) {
             var url = this.mainURL + "/oauth/authorize?" + inResponse;
 
@@ -175,6 +178,10 @@ enyo.kind({
         this.$.authPopup.close();
     },
 
+    doAuthFailure: function(inSender, inResponse){
+        console.log("doAuthFailure");
+        console.log(JSON.stringify(inResponse));
+    },
 
     /* ******************** Dropbox REST API ******************** */
 
@@ -224,6 +231,14 @@ enyo.kind({
         var url = this.apiURL+"/metadata/"+this.root+path;
         this.dropboxCall(url, params, "", "GET",
             "doMetadataSuccess", "doMetadataFailure");
+    },
+
+    reset: function() {
+        this.token = "";
+        this.tokenSecret = "";
+        this.requestToken = "";
+        this.requestSecret = "";
+        this.authorized = false;
     }
 
 });

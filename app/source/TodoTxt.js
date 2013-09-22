@@ -18,10 +18,10 @@ enyo.kind({
     name: "TodoTxt",
     kind: enyo.VFlexBox,
     published: {
-        launchParams: null
+        launchParams: null,
+        online: false
     },
     components: [
-
         {kind: "AppMenu", components: [
             {caption: "Preferences", onclick: "showPrefView"},
             {caption: "About", onclick: "showAbout"}
@@ -30,7 +30,7 @@ enyo.kind({
             contentHeight: "100%", height: "80%", width: "80%",
             dismissWithClick: true, components: [
             {name: "aboutTitle", content: ""},
-            {content: "by Morgan McMillian"},
+            {content: "by Morgan McMillian & Alexander Neumann"},
             {kind: "Divider", caption: "Version History"},
             {flex: 1, kind: "Scroller", components: [
                 {kind: "HtmlContent", className: "ver-history",
@@ -47,7 +47,7 @@ enyo.kind({
         {flex: 1, kind: "Pane", onSelectView: "viewSelected",
             transitionKind: enyo.transitions.Simple, components: [
             {name: "listView", kind: "TodoList", onEdit: "showEditView",
-                onPrefs: "showPrefView", onReload: "refreshTodo"
+                onPrefs: "showPrefView", onReload: "syncTodo"
             },
             {name: "editView", kind: "TodoEdit",
                 onClose: "closeView", onSave: "addTodo"
@@ -64,7 +64,9 @@ enyo.kind({
             onGetFileSuccess: "loadDropbox",
             onGetFileFailure: "fail",
             onPutFileSuccess: "dboxPutFileSuccess",
-            onPutFileFailure: "fail"
+            onPutFileFailure: "fail",
+            onMetadataSuccess: "syncTodoCheck",
+            onMetadataFailure: "fail"
         },
         {name: "readFile", kind: "PalmService",
             service: "palm://com.monkeystew.todotxtenyo.beta.service/",
@@ -109,7 +111,7 @@ enyo.kind({
                     className: "enyo-box-input", owner:this.$.editView}
             );
             this.$.editView.render();
-            this.$.preferenceView.$.filepath.setDisabled(false);
+            this.$.listView.$.syncButton.setDisabled(true);
         } else {
             this.os = "unknown";
         }
@@ -121,30 +123,23 @@ enyo.kind({
             this.preferences = JSON.parse(this.preferences);
         }
 
-        if (this.preferences["storage"] == "dropbox") {
-            if (this.preferences["dboxtoken"]) {
-                this.$.dropbox.setToken(
-                    this.preferences["dboxtoken"]
-                );
-                this.$.dropbox.setTokenSecret(
-                    this.preferences["dboxsecret"]
-                );
-                this.$.dropbox.setAuthorized(true);
-                this.$.preferenceView.$.dboxlogout.show();
-                this.$.preferenceView.$.dboxpathselect.show();
-                this.$.preferenceView.$.filepathselect.hide();
-            }
+        if (this.preferences["dboxtoken"]) {
+            this.$.dropbox.setToken(
+                this.preferences["dboxtoken"]
+            );
+            this.$.dropbox.setTokenSecret(
+                this.preferences["dboxsecret"]
+            );
+            this.$.dropbox.setAuthorized(true);
+            this.$.preferenceView.$.dboxlogout.show();
+            this.$.preferenceView.$.dboxlogin.hide();
         }
 
-        //TODO: need to derive a better method for introducing new
-        //preferences into the application
-
-        if (this.preferences["dboxpath"] == undefined) {
-            this.preferences["dboxpath"] = "/todo";
-            localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
+        if (this.preferences["encrypted"] == true) {
+            this.$.preferenceView.$.pwcontainer.show();
         }
-
-        if (this.preferences["offline"] == true) {
+    
+        if ((this.online == false) || (this.$.dropbox.getAuthorized() == false)) {
             this.$.viewTitle.setContent("[offline]");
         }
 
@@ -158,7 +153,6 @@ enyo.kind({
         }
 
         this.recount = 0;
-        this.autoarchive = false;
         this.todoList = [];
         this.doneList = [];
         this.refreshTodo();
@@ -185,7 +179,7 @@ enyo.kind({
 
     viewSelected: function(inSender, inView) {
         if (inView == this.$.listView) {
-            if (this.preferences["offline"] == true) {
+            if ((this.online == false) || (this.$.dropbox.getAuthorized() == false)) {
                 this.$.viewTitle.setContent("[offline]");
             } else {
                 this.$.viewTitle.setContent("");
@@ -196,19 +190,60 @@ enyo.kind({
     },
 
     refreshTodo: function() {
-        if (this.preferences["storage"] == "file") {
-            this.getLocalFile();
-            this.getArchiveFile();
-        } else if (this.preferences["storage"] == "dropbox") {
-            if (this.preferences["offline"] == false) {
-                var dboxpath = this.preferences["dboxpath"];
-                this.$.dropbox.getFile(dboxpath+"/todo.txt");
-                this.$.dropbox.getFile(dboxpath+"/done.txt");
+        this.getLocalFile();
+        this.getArchiveFile();
+    },
+
+    syncTodo: function() {
+        this.$.dropbox.getMetadata("/todo.txt");
+    },
+
+    syncTodoCheck: function(inSender, inResponse, inRequest) {
+        console.log("rev is " + inResponse.rev);
+        console.log("local ref is " + this.preferences["dboxrev"]);
+        if (inResponse.rev == this.preferences["dboxrev"]) {
+            console.log("dropbox file did not change.");
+            if (this.preferences["localchanges"] == true) {
+                console.log("local file changed --> upload");
+                var tododata = "";
+                var task;
+                for (item in this.todoList) {
+                    task = this.todoList[item];
+                    tododata = tododata + task.toString() + "\n";
+                }
+                var donedata = "";
+                for (item in this.doneList) {
+                    donedata = donedata + this.doneList[item].detail + "\n";
+                }
+                //console.log(data);
+                if ((this.preferences["encrypted"] == true) && (this.preferences["password"].length > 0)) {
+                    var encrypted;
+                    //console.log("encrypt data!");
+                    //console.log(this.preferences["password"]);
+                    encrypted = CryptoJS.AES.encrypt(tododata, this.preferences["password"]);
+                    tododata = encrypted.toString();
+                    encrypted = CryptoJS.AES.encrypt(donedata, this.preferences["password"]);
+                    donedata = encrypted.toString();
+                    //console.log(tododata);
+                }
+                this.$.dropbox.putFile("/todo.txt",tododata);
+                this.$.dropbox.putFile("/done.txt",donedata);
+                this.showToast("upload files");
             } else {
-                console.log("working offline, loading local copy instead");
-                this.getLocalFile();
+                this.showToast("files in sync");
             }
+        }  else {
+            // we prefer remote data if they changed for the moment
+            // also we assume that todo.txt and done.txt are synced
+            // which means we just check todo.txt's rev
+            console.log("dropbox file seems more recent --> download");
+            this.$.dropbox.getFile("/todo.txt");
+            this.$.dropbox.getFile("/done.txt");
+            this.preferences["dboxrev"] = inResponse.rev;
+            this.showToast("download files");
         }
+        this.preferences["localchanges"] = false;
+        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 
     archiveTodo: function() {
@@ -281,9 +316,19 @@ enyo.kind({
     },
 
     parseFile: function(path, file) {
+        //console.log("-----------encrypted----------");
+        //console.log(file.content);
+        var data;
+        if ((this.preferences["encrypted"] == true) && (this.preferences["password"].length > 0)) {
+            data = CryptoJS.AES.decrypt(file.content, this.preferences["password"]).toString(CryptoJS.enc.Utf8);
+        } else {
+            data = file.content;
+        }
+        //console.log("-----------decrypted----------");
+        //console.log(data);
         //console.log("path: " + path);
-        if (file.content != undefined) {
-            todofile = file.content.split("\n");
+        if (data != undefined) {
+            todofile = data.split("\n");
         } else {
             todofile = "";
         }
@@ -293,10 +338,8 @@ enyo.kind({
                 if (typeof line == "string") {
                     line = parseInt(line, 10);
                 }
-                var task = new Object();
+                var task = this.parseTask(todofile[line]);
                 task.num = line + 1;
-                task.pri = todofile[line].match(/^\([A-E]\)\s/);
-                task.detail = todofile[line];
                 this.todoList.push(task);
             }
         }
@@ -305,10 +348,58 @@ enyo.kind({
         console.log("row count: " + this.todoList.length);
     },
 
+    parseTask: function(input) {
+        //console.log(input);
+        var task = new Task();
+        // check for priority
+        if (input[0] == "x") {
+            task.done = "x";
+            input = input.slice(2);
+            // the date directly behind X is considered to be the done date
+            var end = input.match(/^\d\d\d\d-\d\d-\d\d/);
+            if (end != undefined) {
+                task.end = end[0];
+                input = input.slice(11);
+            }
+        } else {
+            // priority is only given to not completed tasks
+            var pri = input.match(/^\([A-E]\)\s/);
+            if (pri != undefined) {
+                task.pri = pri[0].slice(0,-1);
+                input = input.slice(4);
+            }
+        }
+        var begin = input.match(/^\d\d\d\d-\d\d-\d\d/);
+        if (begin != undefined) {
+            task.begin = begin[0];
+            input = input.slice(11);
+        }
+        // check for contexts
+        var con = input.match(/\@[^\s]+/g);
+        if (con != undefined) {
+            task.con = con;
+            input = input.replace((/\@[^\s]+/g), "");
+        }
+        // check for prohects
+        var pro = input.match(/\+[^\s]+/g);
+        if (pro != undefined) {
+            task.pro = pro;
+            input = input.replace((/\+[^\s]+/g), "");
+        }
+        // rest is the description
+        task.detail = input;
+        return task;
+    },
+
     saveFile: function(path, list) {
-        data = "";
+        var data = "";
+        var task;
         for (item in list) {
-            data = data + list[item].detail + "\n";
+            task = list[item];
+            data = data + task.toString()+"\n";
+        }
+        if ((this.preferences["encrypted"] == true) && (this.preferences["password"].length > 0)) {
+            data = CryptoJS.AES.encrypt(data, this.preferences["password"]).toString();
         }
         if (this.os == "BlackBerry") {
             if (blackberry.io.file.exists(path)) {
@@ -319,10 +410,6 @@ enyo.kind({
                 blackberry.io.file.saveFile(path,
                     blackberry.utils.stringToBlob(data));
                 result = "file saved";
-                if (path == this.preferences["filepath"] && this.autoarchive == true) {
-                    this.autoarchive = false;
-                    this.archiveTodo();
-                }
             } catch (e) {
                 console.log("err: " + e);
                 result = "err: " + e;
@@ -331,18 +418,8 @@ enyo.kind({
         } else {
             this.$.writeFile.call({ path: path, content: data });
         }
-
-        if (this.preferences["storage"] == "dropbox" &&
-            this.preferences["offline"] == false &&
-            this.dropboxRefresh == false) {
-            console.log("test:" + path.match(/(todo|done)\.txt.*/)[0]);
-            var filename = path.match(/(todo|done)\.txt.*/)[0];
-            filename = this.preferences["dboxpath"]+"/"+filename;
-            //var params = { overwrite: true };
-            this.$.dropbox.putFile(filename, data);
-        } else if (this.dropboxRefresh == true) {
-            this.dropboxRefresh = false;
-        }
+        this.preferences["localchanges"] = true;
+        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 
     saveSuccess: function(inSender, inEvent) {
@@ -353,22 +430,22 @@ enyo.kind({
             this.showToast("file saved");
             console.log(inEvent.path + " saved...");
             console.log(inEvent.bytes + " bytes...");
-            if (inEvent.path == this.preferences["filepath"] && this.autoarchive == true) {
-                this.autoarchive = false;
-                this.archiveTodo();
-            }
         }
     },
 
     dboxPutFileSuccess: function(inSender, inResponse) {
         console.log(inResponse.path + " uploaded to Dropbox");
-        console.log("at revision " + inResponse.revision);
+        if (inResponse.path.match(/todo\.txt$/)) {
+            this.preferences["dboxrev"] = inResponse.rev;
+            localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
+        }
         console.log(inResponse.size + " bytes...");
     },
 
-    doNothing: function(inSender) {
+    doNothing: function(inSender, inResponse) {
         console.log("errrr");
         console.log(":: " + inSender);
+        console.log(JSON.stringify(inResponse));
     },
 
     dirCreated: function(inSender, inEvent) {
@@ -390,7 +467,6 @@ enyo.kind({
             }
         } else {
             this.$.readFile.call({ path: path });
-            //this.$.readFile.call({ path: this.preferences["filepath"] });
         }
     },
 
@@ -415,10 +491,13 @@ enyo.kind({
     loadArchive: function(path, file) {
         // TODO stub
         this.doneList = [];
+        if (typeof myVar === "undefined") {
+            return;
+        }
         var list = file.content.split("\n");
         for (item in list) {
             if (list[item].length > 0) {
-                var task = new Object();
+                var task = {};
                 task.detail = list[item];
                 this.doneList.push(task);                
             }
@@ -427,59 +506,65 @@ enyo.kind({
 
     loadDropbox: function(inSender, inResponse, inRequest) {
         console.log("url:" + inRequest.url);
-        var file = new Object();
+        var file = {};
         file.content = inResponse;
         if (inRequest.url.match(/todo\.txt/)) {
             console.log("got the main file");
             this.parseFile(null, file);
-            this.dropboxRefresh = true;
             this.saveFile(this.preferences["filepath"], this.todoList);
         } else if (inRequest.url.match(/done\.txt/)) {
             console.log("got the done file");
             this.loadArchive(null, file);
-            this.dropboxRefresh = true;
             this.saveFile(
                 this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
                 this.doneList
             );
         }
+        this.preferences["localchanges"] = false;
+        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 
     resetPreferences: function() {
         localStorage.clear();
         this.preferences = new Object();
-        this.preferences["storage"] = "file";
-        this.preferences["offline"] = true;
-        this.preferences["dboxpath"] = "/todo";
+        this.preferences["dboxpath"] = "";
+        this.preferences["password"] = "";
+        this.preferences["dboxrev"] = 0;
         if (this.os == "BlackBerry") {
             var path = this.dirs.shared.documents.path + "/todo/todo.txt";
-            this.preferences["filepath"] = path;
+            this.preferences["filepath"] = path
         } else {
             this.preferences["filepath"] = "/media/internal/todo/todo.txt";
         }
 
         // reset the preferences pane
-        this.$.preferenceView.$.offline.setChecked(true);
-        this.$.preferenceView.$.dboxlogout.hide();
-        this.$.preferenceView.$.dboxpathselect.hide();
-        this.$.preferenceView.$.filepathselect.show();
 
+        //this.$.preferenceView.$.offline.setChecked(true);
+        this.$.preferenceView.clearDropbox();
+        this.$.listView.$.syncButton.setDisabled(true);
         // save preferences
         localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 
     handleConnectionChange: function(inSender, inResponse) {
         var r = inResponse.isInternetConnectionAvailable;
-
         if (r) {
             console.log("went online...");
+            if (this.$.dropbox.getAuthorized() == true) {
+                this.enableDropbox();
+                this.online = true;
+                this.$.viewTitle.setContent("");
+            } else {
+                this.$.listView.$.syncButton.setDisabled(true);
+            }
         } else {
             console.log("went offline...");
-            if (this.preferences["offline"] == false) {
-                this.showToast("offline mode");
-                this.preferences["offline"] = true;
-                this.$.preferenceView.$.offline.setChecked(true);
-            }
+            this.online = false;
+            this.showToast("offline mode");
+            this.$.viewTitle.setContent("[offline]");
+            this.$.listView.$.syncButton.setDisabled(true);
+            this.$.preferenceView.$.dboxlogin.setDisabled(true);
+            this.$.preferenceView.$.dboxlogout.hide();
         }
     },
 
@@ -490,25 +575,24 @@ enyo.kind({
     },
 
     enableDropbox: function() {
-        console.log("authentication successful, enabling dropbox");
-        var token = this.$.dropbox.getToken();
-        var secret = this.$.dropbox.getTokenSecret();
-        this.preferences["dboxtoken"] = token;
-        this.preferences["dboxsecret"] = secret;
-        this.preferences["offline"] = false;
-        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
-        this.$.preferenceView.$.dboxlogout.show();
-        this.$.preferenceView.$.dboxpathselect.show();
-        this.$.preferenceView.$.filepathselect.hide();
-        this.dropboxRefresh = true;
-        this.refreshTodo();
+        if (this.$.dropbox.getAuthorized() == true) {
+            console.log("authentication successful, enabling dropbox");
+            var token = this.$.dropbox.getToken();
+            var secret = this.$.dropbox.getTokenSecret();
+            this.preferences["dboxtoken"] = token;
+            this.preferences["dboxsecret"] = secret;
+            localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
+            this.$.preferenceView.$.dboxlogin.hide();
+            this.$.preferenceView.$.dboxlogout.show();
+            this.$.listView.$.syncButton.setDisabled(false);
+        } else {
+            console.log("cannot enable dropbox. not authorized.");
+            this.$.listView.$.syncButton.setDisabled(true);
+        }
     },
 
     disableDropbox: function() {
-        this.$.dropbox.setToken("");
-        this.$.dropbox.setTokenSecret("");
-        this.$.dropbox.setAuthorized(false);
-        this.preferences["storage"] = "file";
+        this.$.dropbox.reset();
         this.preferences["dboxtoken"] = "";
         this.preferences["dboxsecret"] = "";
         localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
@@ -522,5 +606,22 @@ enyo.kind({
             toast.style.opacity = 0;
         }, 1000);
     }
+});
 
+enyo.kind({
+  name: "Task",
+  constructor: function() {
+      this.pri = undefined;
+      this.con = [];
+      this.pro = [];
+      this.detail = "";
+      this.done = undefined;
+      this.begin = undefined;
+      this.end = undefined;
+
+  },
+  toString: function() {
+    var arr = [this.done, this.end, this.pri, this.begin, this.detail, this.pro, this.con];
+    return arr.join(" ").trim().replace(/\s\s+/," ");
+  }  
 });

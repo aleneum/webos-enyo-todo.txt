@@ -7,5 +7,6 @@ enyo.depends(
     "source/Dropbox.js",
     "source/oauth.js",
     "source/sha1.js",
-	"source/styles.css"
+	"source/styles.css",
+	"source/aes.js"
 );
