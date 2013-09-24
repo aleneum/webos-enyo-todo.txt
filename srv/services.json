@@ -1,9 +1,9 @@
 {
-	"id": "com.monkeystew.todotxtenyo.beta.service",
+	"id": "com.github.aleneum.todotxt.service",
 	"description": "FileIO Service",
 	"services": [
 		{
-			"name": "com.monkeystew.todotxtenyo.beta.service",
+			"name": "com.github.aleneum.todotxt.service",
 			"description": "FileIO Service",
 			"commands": [
 				{ 

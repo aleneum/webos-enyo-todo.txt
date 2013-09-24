@@ -1,10 +1,10 @@
 {
-	"id": "com.monkeystew.todotxtenyo.beta",
+	"id": "com.github.aleneum.todotxt",
     "package_format_version": 2,
     "loc_name": "Todo.txt Enyo",
     "icon": "icon.png",
-	"version": "0.4.1",
-	"vendor": "Monkeystew",
-    "app": "com.monkeystew.todotxtenyo.beta",
-    "services": ["com.monkeystew.todotxtenyo.beta.service"]
+	"version": "0.6.0",
+	"vendor": "aleneum",
+    "app": "com.github.aleneum.todotxt",
+    "services": ["com.github.aleneum.todotxt.service"]
 }

@@ -6,16 +6,11 @@ A webOS application for managing your [todo.txt](http://todotxt.com) file writte
 Current Features
 ----------------
 
+* Search through your tasks
 * Filter by project or context
 * Set and sort by priority
+* Dropbox support
+* Encryption (AES) support
 * Task completion (and optionally creation) dates
 * Archive completed tasks (done.txt)
-* "Just Type" quick actions and universal search
-* Internal storage support
-* Dropbox support
-
-Planned Features
-----------------
-
-* Tablet friendly UI
-* Additional cloud storage options
+* "Just Type" quick actions

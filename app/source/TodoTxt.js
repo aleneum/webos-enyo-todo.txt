@@ -69,21 +69,21 @@ enyo.kind({
             onMetadataFailure: "fail"
         },
         {name: "readFile", kind: "PalmService",
-            service: "palm://com.monkeystew.todotxtenyo.beta.service/",
+            service: "palm://com.github.aleneum.todotxt.service/",
             method: "readfile",
             onSuccess: "parseFile", onFailure: "doNothing"
         },
         {name: "readDoneFile", kind: "PalmService",
-            service: "palm://com.monkeystew.todotxtenyo.beta.service/",
+            service: "palm://com.github.aleneum.todotxt.service/",
             method: "readfile",
             onSuccess: "loadArchive", onFailure: "doNothing"
         },
         {name: "writeFile", kind: "PalmService",
-            service: "palm://com.monkeystew.todotxtenyo.beta.service/",
+            service: "palm://com.github.aleneum.todotxt.service/",
             method: "writefile", onSuccess: "saveSuccess"
         },
         {name: "makeDir", kind: "PalmService",
-            service: "palm://com.monkeystew.todotxtenyo.beta.service/",
+            service: "palm://com.github.aleneum.todotxt.service/",
             method: "makedir", onSuccess: "dirCreated",
             onFailure: "doNothing"
         },
