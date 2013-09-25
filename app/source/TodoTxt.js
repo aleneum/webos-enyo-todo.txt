@@ -22,6 +22,7 @@ enyo.kind({
         online: false
     },
     components: [
+        //{kind: "ApplicationEvents", onUnload: ""},
         {kind: "AppMenu", components: [
             {caption: "Preferences", onclick: "showPrefView"},
             {caption: "About", onclick: "showAbout"}
@@ -155,8 +156,6 @@ enyo.kind({
         this.recount = 0;
         this.todoList = [];
         this.doneList = [];
-        this.refreshTodo();
-
         console.log("things are ready");
 
     },
@@ -195,6 +194,9 @@ enyo.kind({
     },
 
     syncTodo: function() {
+        if (this.preferences["autoarchive"] === true) {
+            this.archiveTodo();
+        }
         this.$.dropbox.getMetadata("/todo.txt");
     },
 
@@ -247,17 +249,18 @@ enyo.kind({
     },
 
     archiveTodo: function() {
-        // TODO stub
+        var notDone = []
         for (item in this.todoList) {
-            if (this.todoList[item].detail.match(/^x\s/)) {
-                this.recount++;
-                this.doneList.push(this.todoList[item]);
-                this.todoList.splice(item, 1);
-                this.archiveTodo();
-                this.recount--;
+            var task = this.todoList[item];
+            if (task.done == "x") {
+                this.doneList.push(task);
+            } else {
+                notDone.push(task);
             }
         }
-        if (this.recount == 0) {
+        console.log(notDone);
+        if (notDone.length < this.todoList.length) {
+            this.todoList = notDone;
             console.log("done: "+this.doneList);
             this.$.listView.listRefresh();
             this.saveFile(
@@ -265,8 +268,8 @@ enyo.kind({
                 this.doneList
             );
             this.saveFile(this.preferences["filepath"], this.todoList);
-            this.closeView();
         }
+        this.closeView();
     },
 
     addTodo: function() {
@@ -491,9 +494,6 @@ enyo.kind({
     loadArchive: function(path, file) {
         // TODO stub
         this.doneList = [];
-        if (typeof myVar === "undefined") {
-            return;
-        }
         var list = file.content.split("\n");
         for (item in list) {
             if (list[item].length > 0) {

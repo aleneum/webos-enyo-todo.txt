@@ -30,6 +30,14 @@ enyo.kind({
                 {kind: "RowGroup", caption: "todo.txt", components: [
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [
+                            {content: "Autoarchive"},
+                            {kind: "Spacer"},
+                            {kind: "CheckBox", name: "autoarchive",
+                                preferenceProperty: "autoarchive",
+                                onChange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout",
+                        components: [
                             {content: "Encryption"},
                             {kind: "Spacer"},
                             {kind: "CheckBox", name: "encrypted",
