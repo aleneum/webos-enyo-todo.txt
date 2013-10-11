@@ -22,7 +22,7 @@ enyo.kind({
         online: false
     },
     components: [
-        //{kind: "ApplicationEvents", onUnload: ""},
+        {kind: "ApplicationEvents", onUnload: "shutDown"},
         {kind: "AppMenu", components: [
             {caption: "Preferences", onclick: "showPrefView"},
             {caption: "About", onclick: "showAbout"}
@@ -157,7 +157,19 @@ enyo.kind({
         this.todoList = [];
         this.doneList = [];
         console.log("things are ready");
+        this.refreshTodo();
+    },
 
+    shutDown: function() {
+         if (this.preferences["autoarchive"] === true) {
+            this.archiveTodo();
+        } else {
+            this.saveFile(
+                this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
+                this.doneList
+            );
+            this.saveFile(this.preferences["filepath"], this.todoList);
+        }
     },
 
     launchParamsChanged: function() {
@@ -258,7 +270,7 @@ enyo.kind({
                 notDone.push(task);
             }
         }
-        console.log(notDone);
+        //console.log(notDone);
         if (notDone.length < this.todoList.length) {
             this.todoList = notDone;
             console.log("done: "+this.doneList);
