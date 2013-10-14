@@ -632,6 +632,14 @@ enyo.kind({
       this.end = undefined;
 
   },
+  //TODO: if this does not satisfy future requirements, test JSON.stringify
+  assign: function(task) {
+    for (var prop in task) {
+        if (this.hasOwnProperty(prop)) {
+            this[prop] = task[prop];
+        }
+    }
+  },
   toString: function() {
     var arr = [this.done, this.end, this.pri, this.begin, this.detail, this.pro, this.con];
     return arr.join(" ").trim().replace(/\s\s+/," ");
