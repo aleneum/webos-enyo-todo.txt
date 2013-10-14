@@ -1,18 +1,19 @@
 /*Your CSS here*/
 /* TODO: retheme this whole bloddy mess */
 .enyo-header {
-/*    background-color: #448820;*/
     background-color: #448820;
     color: white;
-}
-
-#todoTxt_listView_todoList {
-    background-color: white;
+    -webkit-border-image: none 100% 1 0 stretch;
 }
 
 .enyo-toolbar {
     color: white;
     background-color: #448820;
+    -webkit-border-image: none 100% 1 0 stretch;
+}
+
+#todoTxt_listView_todoList {
+    background-color: white;
 }
 
 .todo-entry{

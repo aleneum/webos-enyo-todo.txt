@@ -27,7 +27,9 @@ enyo.kind({
         projectList: [],
         contextList: [],
         filterList: [],
-        sortedList: undefined
+        sortedList: undefined,
+        selectedIndex: undefined,
+        selected: []
     },
     events: {
         "onEdit": "",
@@ -36,29 +38,29 @@ enyo.kind({
     },
     components: [
     
-        {name: "todoPopup", kind: "ModalDialog", dismissWithClick: true,
-            onClose: "closePopup", components: [
-                {kind: "RowGroup", components: [
-                    {content:"Complete", onclick:"completeTodoItem",
-                        style: "text-align:center"},
-                    {content:"Prioritize", onclick:"showPriList",
-                        style: "text-align:center"},
-                    {content:"Update", onclick:"updateTodoItem",
-                        style: "text-align:center"},
-                    {content:"Delete", onclick:"deleteTodoItem",
-                        style: "text-align:center"}
-                ]}
-        ]},
-        {name: "completedPopup", kind: "ModalDialog",
-            dismissWithClick: true, onClose: "closePopup", components: [
-                {kind: "RowGroup", components: [
-                    {content:"Undo Complete",
-                        onclick:"undoCompleteTodoItem",
-                        style: "text-align:center"},
-                    {content:"Delete", onclick:"deleteTodoItem",
-                        style: "text-align:center"}
-                ]}
-        ]},
+        // {name: "todoPopup", kind: "ModalDialog", dismissWithClick: true,
+        //     onClose: "closePopup", components: [
+        //         {kind: "RowGroup", components: [
+        //             {content:"Complete", onclick:"completeTodoItem",
+        //                 style: "text-align:center"},
+        //             {content:"Prioritize", onclick:"showPriList",
+        //                 style: "text-align:center"},
+        //             {content:"Update", onclick:"updateTodoItem",
+        //                 style: "text-align:center"},
+        //             {content:"Delete", onclick:"deleteTodoItem",
+        //                 style: "text-align:center"}
+        //         ]}
+        // ]},
+        // {name: "completedPopup", kind: "ModalDialog",
+        //     dismissWithClick: true, onClose: "closePopup", components: [
+        //         {kind: "RowGroup", components: [
+        //             {content:"Undo Complete",
+        //                 onclick:"undoCompleteTodoItem",
+        //                 style: "text-align:center"},
+        //             {content:"Delete", onclick:"deleteTodoItem",
+        //                 style: "text-align:center"}
+        //         ]}
+        // ]},
         {name: "priorityPopup", kind: "ModalDialog",
             dismissWithClick: true, onClose: "closePopup", components: [
                 {kind: "RowGroup", caption:"Select Priority", components: [
@@ -115,7 +117,7 @@ enyo.kind({
                 onSetupRow: "getTodoList", onclick: "todoTap",
                 components: [
                     {kind: "SwipeableItem", onConfirm: "deleteTodo", className: "todo-entry",
-                        layoutKind: "enyo.HFlexLayout", tapHighlight: true, name: "todoRow",
+                        layoutKind: "enyo.HFlexLayout", name: "todoRow",
                         align:"center",
                         components: [
                             {name: "lineNum", className: "left-col"},
@@ -148,24 +150,32 @@ enyo.kind({
                     {caption: "ID Descending", value: "dsc"},
                     {caption: "Text (A-Z)", value: "az"}
                 ]},
-                // {icon: "images/273-Add.png",
-                //     onclick: "doEdit", align: "right"},
-                // {icon: "images/254-Funnel.png",
-                //     onclick: "showFilters", align: "right"},
-                // {name:"syncButton", icon: "images/156-Cycle.png",
-                //     onclick: "doReload", align: "right"},
-                // {icon: "images/072-Settings.png",
-                //     onclick: "doPrefs", align: "right"}
-                {icon: "images/aadd.png",
+                {icon: "images/add.png",
                     onclick: "doEdit", align: "right"},
-                {icon: "images/afind.png",
+                {icon: "images/find.png",
                     onclick: "showFilters", align: "right"},
-                {name:"syncButton", icon: "images/arefresh.png",
+                {name:"syncButton", icon: "images/refresh.png",
                     onclick: "doReload", align: "right"},
-                {icon: "images/apref.png",
+                {icon: "images/pref.png",
                     onclick: "doPrefs", align: "right"}
             ]
         },
+        {name: "editToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
+            showing: false,
+            components: [
+                {flex: 1},
+                {icon: "images/prio.png",
+                    onclick: "showPriList", align: "right"},
+                {icon: "images/done.png",
+                    onclick: "nothing", align: "right"},
+                {icon: "images/undone.png",
+                    onclick: "nothing", align: "right"},
+                {icon: "images/edit.png",
+                    onclick: "updateTodoItem", align: "right"},
+                {icon: "images/delete.png",
+                    onclick: "nothing", align: "right"}
+            ]
+        }
     
     ],
 
@@ -249,7 +259,7 @@ enyo.kind({
                 this.$.todoItem.addStyles("text-decoration:line-through;");
                 this.$.todoItem.addClass("completed-item");
             }
-            if (inIndex == this.selectedIndex) {
+            if (this.selected.indexOf(inIndex) != -1) {
                 this.$.todoRow.addClass("selected-item");
             }
             if (!filtered) {
@@ -263,29 +273,18 @@ enyo.kind({
     },
 
     todoTap: function(inSender, inEvent) {
-        this.selectedIndex = inEvent.rowIndex;
-        if (this.selectedIndex != undefined) {
-            //this.selectedId = this.sortedList[this.selectedIndex].num-1;
-            var num = this.sortedList[this.selectedIndex].num;
-            function getIdx(list, num) {
-                for (var i=0; i<list.length; i++) {
-                    if (list[i].num == num)
-                        return i;
-                }
-            }
-            this.selectedId = getIdx(this.owner.todoList,num);
+        var idx = this.selected.indexOf(inEvent.rowIndex);
+        if ( idx != -1) {
+            this.selected.splice(idx,1);
+        } else {
+            this.selected.push(inEvent.rowIndex);
         }
-        var r = this.sortedList[inEvent.rowIndex];
-
-        if (r) {
-            var quick = this.owner.preferences["quickComplete"];
-            if (r.done == "x") {
-                this.$.completedPopup.openAtCenter();
-            } else if (quick) {
-                this.completeTodoItem();
-            } else {
-                this.$.todoPopup.openAtCenter();
-            }
+        if (this.selected.length > 0) {
+            this.$.editToolbar.setShowing(true);
+            this.$.listToolbar.setShowing(false);
+        } else {
+            this.$.editToolbar.setShowing(false);
+            this.$.listToolbar.setShowing(true);
         }
         this.$.todoList.render();
     },
@@ -294,105 +293,107 @@ enyo.kind({
         this.owner.saveFile(
                 this.owner.preferences["filepath"]+".bak", this.owner.todoList);
         var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
-        //this.owner.todoList[this.selectedId].detail =
-        //    dfmt.format(new Date()) + " " +
-        //    this.owner.todoList[this.selectedId].detail;
-        this.owner.todoList[this.selectedId].done = "x";
-        this.owner.todoList[this.selectedId].end = dfmt.format(new Date());
+        for (var i = 0; i < this.selected.length; ++i) {
+            var idx = this.selected[i];
+            this.owner.todoList[idx].done = "x";
+            this.owner.todoList[idx].end = dfmt.format(new Date());
+        }
+        this.selected = [];
         this.owner.saveFile(
                 this.owner.preferences["filepath"], this.owner.todoList);
-        this.$.todoPopup.close();
     },
 
     undoCompleteTodoItem: function() {
         this.owner.saveFile(
                 this.owner.preferences["filepath"]+".bak", this.owner.todoList);
-        //this.owner.todoList[this.selectedId].detail = 
-        //    this.owner.todoList[this.selectedId].detail.replace(/^x\s[0-9]{4}-[0-9]{2}-[0-9]{2}\s/,"");
-        this.owner.todoList[this.selectedId].done = undefined;
-        this.owner.todoList[this.selectedId].end = undefined;
+        for (var i = 0; i < this.selected.length; ++i) {
+            var idx = this.selected[i];
+            this.owner.todoList[idx].done = undefined;
+            this.owner.todoList[idx].end = undefined;
+        }
         this.owner.saveFile(
                 this.owner.preferences["filepath"], this.owner.todoList);  
-        this.closePopup();
+        this.selected = [];
     },
 
     updateTodoItem: function() {
-        var task = this.owner.todoList[this.selectedId];
-        if (task.pri) {
-            this.owner.$.editView.$.priGroup.setValue(task.pri[1]);
-        } else {
-            this.owner.$.editView.$.priGroup.setValue("-");
-        }
-        this.owner.$.editView.$.tododetail.setValue(task.toString());
-        this.replaceItem = true;
+        var content = "";
+        for (var i = this.selected.length - 1; i >= 0; i--) {
+            var idx = this.selected[i];
+            var task = this.sortedList[idx];
+            content += "<div>" + task.toString() + "</div>";
+        };
+        this.owner.$.editView.$.tododetail.setValue(content);
         this.owner.showEditView();
-        this.$.todoPopup.close();
     },
 
     addTodo: function() {
-        //task.detail = this.owner.$.editView.$.tododetail.getValue();
-        //task.detail = task.detail.replace(/(<\/?[A-Za-z][A-Za-z0-9]*>)+/g," ");
-        if (this.cacheChanges != "YES" && this.cacheChanges != "COMMIT") {
-            console.log("saving backup");
-            this.owner.saveFile(
-                this.owner.preferences["filepath"]+".bak", this.owner.todoList);
-            if (this.cacheChanges == "START") {
-                this.cacheChanges = "YES"
+        var detail = this.owner.$.editView.$.tododetail.getValue();
+        detail = detail.replace("</div>","\n");
+        detail = detail.replace(/(<\/?[A-Za-z][A-Za-z0-9]*>)+/g,"");
+        var tasks = detail.split("\n");
+        for (var i = tasks.length - 1; i >= 0; i--) {
+            var strTask = tasks[i];
+            strTask.trim();
+            if (strTask.length == 0) {
+                tasks.splice(i,1);
             }
+        };
+        console.log("saving backup");
+        this.owner.saveFile(
+                this.owner.preferences["filepath"]+".bak", this.owner.todoList);
+        var removeLater = [];
+        while (this.selected.length > tasks.length) {
+            removeLater.push(this.selected.pop());
         }
-        if (this.replaceItem) {
-            var task = this.owner.parseTask(this.owner.$.editView.$.tododetail.getValue());
-            task.num = this.owner.todoList[this.selectedId].num
-            task.begin = this.owner.todoList[this.selectedId].begin
-            this.owner.todoList[this.selectedId] = task;
-            this.replaceItem = false;
-        } else {
-            var txt = this.owner.$.editView.$.tododetail.getValue();
-            var task = this.owner.parseTask(txt);
+        for (var i = this.selected.length - 1; i >= 0; i--) {
+            var idx = this.selected[i];
+            var strTask = tasks.shift();
+            var task = this.owner.parseTask(strTask);
+            task.num = this.sortedList[idx].num;
+            task.begin = this.sortedList[idx].begin;
+        };
+        for (var i = tasks.length - 1; i >= 0; i--) {
+            var strTask = tasks[i];
+            var task = this.owner.parseTask(strTask);
             if (this.owner.preferences["dateTasks"] && !this.completeItem) {
                 var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
                 task.begin = dfmt.format(new Date());
             }
             task.num = this.owner.todoList.length + 1;
             this.owner.todoList.push(task);
-        }
+        };
         this.listRefresh();
-        if (this.cacheChanges != "START" && this.cacheChanges != "YES") {
-            console.log("saving list");
-            this.owner.saveFile(
-                this.owner.preferences["filepath"], this.owner.todoList);
-            if (this.cacheChanges == "COMMIT") {
-                this.cacheChanges = "NO"
-            }
-        }
+        console.log("saving list");
+        this.owner.saveFile(
+            this.owner.preferences["filepath"], this.owner.todoList);
         this.owner.closeView();
-    },
-
-    deleteTodoItem: function() {
-        this.deleteTodo(null, this.selectedId);
-        this.closePopup();
     },
 
     deleteTodo: function(inSender, inIndex) {
         this.owner.saveFile(this.owner.preferences["filepath"]+".bak", this.owner.todoList);
-        this.owner.todoList.splice(inIndex, 1);
+        if (inIndex != undefined) {
+            this.owner.todoList.splice(inIndex, 1);
+        } else {
+            for (var i = 0; i < this.selected.length; ++i) {
+                var idx = this.selected[i];
+                this.owner.todoList.splice(idx, 1);
+            }
+            this.selected = [];
+        }
         this.listRefresh();
         this.owner.saveFile(this.owner.preferences["filepath"], this.owner.todoList);
     },
 
     closePopup: function() {
-        this.$.todoPopup.close();
         this.$.completedPopup.close();
         this.$.priorityPopup.close();
         this.$.filterPopup.close();
-        //this.selectedIndex = null;
-        //this.selectedId = null;
         this.$.todoList.render();
     },
 
     showPriList: function() {
-        var r = this.sortedList[this.selectedIndex];
-        this.$.todoPopup.close();
+        var r = this.sortedList[this.selected[0]];
         this.$.priorityPopup.openAtCenter();
         if (r.pri != undefined) {
             this.$.priGroup.setValue(r.pri[1]);
@@ -404,9 +405,13 @@ enyo.kind({
     setPriority: function(inSender) {
         var val = inSender.getValue();
         if (val.match(/[A-E]/)) {
-            this.owner.todoList[this.selectedId].pri = "(" + val + ")";
+            val = "(" + val + ")";
         } else {
-            this.owner.todoList[this.selectedId].pri = undefined;
+            val = undefined;
+        }
+        for (var i = this.selected.length - 1; i >= 0; i--) {
+            var idx = this.selected[i];
+            this.owner.todoList[idx].pri = val;
         }
         this.$.priorityPopup.close();
     },
