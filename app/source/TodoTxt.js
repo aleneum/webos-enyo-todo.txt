@@ -292,10 +292,12 @@ enyo.kind({
         this.$.pane.selectViewByName("editView");
         if (this.$.listView.getReplaceItem()) {
             this.$.viewTitle.setContent("update task");
+            this.$.editView.removeHint();
         } else {
             this.$.viewTitle.setContent("add task");
-            this.$.editView.$.priGroup.setValue("-");
+            this.$.editView.setHint();
         }
+        this.$.editView.line = 0;
         this.$.editView.$.tododetail.forceFocus();
     },
 
@@ -395,14 +397,27 @@ enyo.kind({
             task.con = con;
             input = input.replace((/\@[^\s]+/g), "");
         }
-        // check for prohects
+        // check for projects
         var pro = input.match(/\+[^\s]+/g);
         if (pro != undefined) {
             task.pro = pro;
             input = input.replace((/\+[^\s]+/g), "");
         }
+        // check for due data
+        var due = input.match(/due:\d\d\d\d-\d\d-\d\d/);
+        if (due != undefined) {
+            task.due = due[0].slice(4);
+            input = input.replace(/due:\d\d\d\d-\d\d-\d\d/,"");
+        }
+        // check for defer
+        var defer = input.match(/t:\d\d\d\d-\d\d-\d\d/);
+        if (defer != undefined) {
+            task.defer = defer[0].slice(2);
+            input = input.replace(/t:\d\d\d\d-\d\d-\d\d/,"");
+        }
         // rest is the description
-        task.detail = input;
+        task.detail = input.trim();
+        task.removeDuplicates();
         return task;
     },
 
@@ -630,6 +645,8 @@ enyo.kind({
       this.done = undefined;
       this.begin = undefined;
       this.end = undefined;
+      this.due = undefined;
+      this.defer = undefined;
 
   },
   //TODO: if this does not satisfy future requirements, test JSON.stringify
@@ -640,8 +657,31 @@ enyo.kind({
         }
     }
   },
+
+  removeDuplicates: function() {
+    this.con = this.con.filter(function(elem, pos, self) {
+        return self.indexOf(elem) == pos;
+    });
+    this.pro = this.pro.filter(function(elem, pos, self) {
+        return self.indexOf(elem) == pos;
+    }); 
+  },
+
   toString: function() {
-    var arr = [this.done, this.end, this.pri, this.begin, this.detail, this.pro, this.con];
-    return arr.join(" ").trim().replace(/\s\s+/," ");
+    var arr = [];
+    if (this.done != undefined) {
+        arr.push(this.done);
+        if (this.end) arr.push(this.end);
+    } else {
+      if (this.pri) arr.push(this.pri);
+    }
+    if (this.begin) arr.push(this.begin);
+    arr.push(this.detail);
+    if (this.due) arr.push("due:" + this.due);
+    if (this.defer) arr.push("t:" + this.defer);
+    arr.push(this.pro.join(" "));
+    arr.push(this.con.join(" "));
+    return arr.join(" ").trim()
+    // return arr.join(" ").trim().replace(/\s\s+/," ");
   }  
 });

@@ -12,8 +12,19 @@
     -webkit-border-image: none 100% 1 0 stretch;
 }
 
-#todoTxt_listView_todoList {
-    background-color: white;
+.todo-toolbar-button {
+    color: white;
+    background-color: #448820;
+}
+
+.enyo-button-negative {
+    color: white;
+    background-color: #be0003;
+}
+
+.enyo-button-affirmative {
+    color: white;
+    background-color: #2aa100;
 }
 
 .todo-entry{
@@ -54,9 +65,43 @@
     background: grey;
     color: white;
 }
+
+.overdue-item {
+    color: red;
+}
+
 .ver-history { font-size: 16px; }
 .version { font-weight: bold;}
 .enyo-modaldialog > * { height:100%; }
+
+#todoTxt_listView_listSelector {
+    height: 37px;
+    padding: 0px 0px;
+}
+
+#todoTxt_listView_listSelector_content {
+    -webkit-box-pack:center !important;
+}
+
+#todoTxt_listView_todoList {
+    background-color: white;
+}
+
+#todoTxt_editView_tododetail {
+    position: absolute;
+    width: 100%;
+    height:100%;
+    z-index:1;
+}
+
+#todoTxt_editView_hint {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index:2;
+    color: #aaaaaa;
+}
+
 #toast {
     position: fixed;
     bottom: 20%;

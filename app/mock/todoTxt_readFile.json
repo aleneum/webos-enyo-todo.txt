@@ -1,5 +1,5 @@
 { "returnValue": true,
   "path": "/dummy",
-  "content": "x TEST ENTRY 2\n(C) Alpha TEST ENTRY 1\n(A) 2013-05-23 Beta TEST ENTRY 3\nTEST ENTRY 4\n(B) Some TEST ENTRY 5\n+TestProject1 @Bug this is my next bug for testing\n+someotherp testing some other one\n"
+  "content": "x TEST ENTRY 2 due:2013-05-23\n(C) Alpha TEST ENTRY 1\n(A) 2013-05-23 Beta TEST ENTRY 3 due:2013-11-11\nTEST ENTRY 4 due:2013-10-18\n(B) Some TEST ENTRY 5 t:2013-11-11\n+TestProject1 @Bug this is my next bug for testing\n+someotherp testing some other one\n"
 
 }
