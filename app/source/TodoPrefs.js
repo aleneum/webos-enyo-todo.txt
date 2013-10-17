@@ -38,6 +38,14 @@ enyo.kind({
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [
+                            {content: "Date new tasks"},
+                            {kind: "Spacer"},
+                            {kind: "CheckBox", name: "dateTasks",
+                                preferenceProperty: "dateTasks",
+                                onChange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout",
+                        components: [
                             {content: "Encryption"},
                             {kind: "Spacer"},
                             {kind: "CheckBox", name: "encrypted",
@@ -52,26 +60,18 @@ enyo.kind({
                     ]},
                     {kind: "Item", layoutKind: "HFlexLayout",
                         components: [
+                            {content: "Hide future tasks"},
+                            {kind: "Spacer"},
+                            {kind: "CheckBox", name: "hideDeferred",
+                                preferenceProperty: "hideDeferred",
+                                onChange: "setPreference"}
+                    ]},
+                    {kind: "Item", layoutKind: "HFlexLayout",
+                        components: [
                             {content: "Show line numbers"},
                             {kind: "Spacer"},
                             {kind: "CheckBox", name: "lineNumbers",
                                 preferenceProperty: "lineNumbers",
-                                onChange: "setPreference"}
-                    ]},
-                    {kind: "Item", layoutKind: "HFlexLayout",
-                        components: [
-                            {content: "Date new tasks"},
-                            {kind: "Spacer"},
-                            {kind: "CheckBox", name: "dateTasks",
-                                preferenceProperty: "dateTasks",
-                                onChange: "setPreference"}
-                    ]},
-                    {kind: "Item", layoutKind: "HFlexLayout",
-                        components: [
-                            {content: "Quick complete"},
-                            {kind: "Spacer"},
-                            {kind: "CheckBox", name: "quickComplete",
-                                preferenceProperty: "quickComplete",
                                 onChange: "setPreference"}
                     ]}
                 ]},
@@ -115,7 +115,7 @@ enyo.kind({
         {name: "prefToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [
                 {kind: "Spacer"},
-                {flex: 1, kind: "Button", caption: "Done",
+                {flex: 1, kind: "IconButton", icon: "images/check.png", className:"todo-toolbar-button",
                     onclick: "doClose", align: "center"},
                 {kind: "Spacer"}
             ]
