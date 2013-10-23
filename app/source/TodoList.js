@@ -75,6 +75,19 @@ enyo.kind({
                     ]}
                 ]}
         ]},
+        {name: "sortPopup", kind: "ModalDialog",
+            dismissWithClick: true, components: [
+                {kind: "RowGroup", caption:"Select Order", components: [
+                    {kind: "RadioGroup", name: "sortGroup",
+                        onChange: "changeSort", components: [
+                    {icon: "images/sortprio.png", value: "pri"},
+                    {icon: "images/sortidasc.png", value: "asc"},
+                    {icon: "images/sortiddsc.png", value: "dsc"},
+                    {icon: "images/sortdue.png", value: "due"},
+                    {icon: "images/sortalpha.png", value: "az"}
+                    ]}
+                ]}
+        ]},
         {name: "filterPopup", kind: "ModalDialog", dismissWithClick: true,
             layoutKind: "VFlexLayout", height: "60%",
             contentHeight: "100%", onClose: "closePopup",
@@ -140,14 +153,8 @@ enyo.kind({
         ]},
         {name: "listToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [
-                {flex:2, kind: "ListSelector", value: "pri", className: "enyo-button todo-toolbar-button",
-                    onChange: "changeSort", items: [
-                    {icon: "images/desc.png", caption: "(PRI)", value: "pri"},
-                    {icon: "images/asc.png", caption: "ID", value: "asc"},
-                    {icon: "images/desc.png", caption: "ID", value: "dsc"},
-                    {icon: "images/asc.png", caption: "DUE", value: "due"},
-                    {icon: "images/asc.png", caption: "Text", value: "az"}
-                ]},
+                {flex:1, kind: "IconButton", icon: "images/sortprio.png", className:"todo-toolbar-button",
+                    onclick: "showSortList", align: "right"},
                 {flex:1, kind:"IconButton", icon: "images/add.png", className:"todo-toolbar-button",
                     onclick: "doEdit", align: "right"}, 
                 {flex:1, kind:"IconButton", icon: "images/find.png", className:"todo-toolbar-button",
@@ -490,21 +497,35 @@ enyo.kind({
         this.$.todoList.render();
     },
 
+    showSortList: function() {
+        this.$.sortPopup.openAtCenter();
+        this.$.sortGroup.setValue(this.sortOrder);
+    },
+
     changeSort: function(inSender, inValue, inOldValue) {
         this.sortOrder = inValue;
+        // gets the first button (sort) and the icon itself
+        var icon = this.$.listToolbar.children[0].children[0];
+        var iconName = "images/sortprio.png"
         if (inValue == "pri") {
             this.sortedList.sort(TodoList.sortPri);
         } else if (inValue == "asc") {
             this.sortedList.sort(TodoList.sortIDasc);
+            iconName = "images/sortidasc.png";
         } else if (inValue == "dsc") {
-            this.sortedList.sort(TodoList.sortIDdsc);           
+            this.sortedList.sort(TodoList.sortIDdsc);
+            iconName = "images/sortiddsc.png";
         } else if (inValue == "az") {
             this.sortedList.sort(TodoList.sortText);
+            iconName = "images/sortalpha.png";
         } else if (inValue == "due") {
             this.sortedList.sort(TodoList.sortDue);
+            iconName = "images/sortdue.png";
         } else {
             console.log("wait what?");
         }
+        icon.setStyle("background-image:url("+iconName+")");
+        this.$.sortPopup.close();
         this.$.todoList.render();
     },
 
