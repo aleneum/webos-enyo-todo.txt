@@ -158,18 +158,21 @@ enyo.kind({
         this.doneList = [];
         console.log("things are ready");
         this.refreshTodo();
+        // if (this.preferences["autoarchive"] === true) {
+        //     this.archiveTodo();
+        // }
     },
 
     shutDown: function() {
-         if (this.preferences["autoarchive"] === true) {
+        if (this.preferences["autoarchive"] === true) {
             this.archiveTodo();
-        } else {
-            this.saveFile(
-                this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
-                this.doneList
-            );
-            this.saveFile(this.preferences["filepath"], this.todoList);
-        }
+        }// else {
+        //     this.saveFile(
+        //         this.preferences["filepath"].replace(/todo\.txt/, "done.txt"),
+        //         this.doneList
+        //     );
+        //     this.saveFile(this.preferences["filepath"], this.todoList);
+        // }
     },
 
     launchParamsChanged: function() {
