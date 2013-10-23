@@ -3,7 +3,7 @@
     "package_format_version": 2,
     "loc_name": "Todo.txt Enyo",
     "icon": "icon.png",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"vendor": "aleneum",
     "app": "com.github.aleneum.todotxt",
     "services": ["com.github.aleneum.todotxt.service"]

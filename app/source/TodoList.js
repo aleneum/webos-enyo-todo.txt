@@ -140,7 +140,7 @@ enyo.kind({
         ]},
         {name: "listToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
             components: [
-                {flex:1, kind: "ListSelector", value: "pri", className: "enyo-button todo-toolbar-button",
+                {flex:2, kind: "ListSelector", value: "pri", className: "enyo-button todo-toolbar-button",
                     onChange: "changeSort", items: [
                     {icon: "images/desc.png", caption: "(PRI)", value: "pri"},
                     {icon: "images/asc.png", caption: "ID", value: "asc"},
@@ -169,7 +169,7 @@ enyo.kind({
                     onclick: "undoCompleteTodoItem", align: "right"},
                 {flex:1, kind:"IconButton", icon: "images/edit.png", className:"todo-toolbar-button",
                     onclick: "updateTodoItem", align: "right"},
-                {flex:1, kind:"IconButton", icon: "images/delete.png", className:"enyo-toolbar-negative",
+                {flex:1, kind:"IconButton", icon: "images/delete.png", className:"enyo-button-negative",
                     onclick: "deleteTodo", align: "right"}
             ]
         }

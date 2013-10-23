@@ -31,7 +31,7 @@ enyo.kind({
             contentHeight: "100%", height: "80%", width: "80%",
             dismissWithClick: true, components: [
             {name: "aboutTitle", content: ""},
-            {content: "by Morgan McMillian & Alexander Neumann"},
+            {content: "by Morgan McMillian & Alexander Neumann; <br> Icons released under CC BY-ND 3.0 by visualpharm.com"},
             {kind: "Divider", caption: "Version History"},
             {flex: 1, kind: "Scroller", components: [
                 {kind: "HtmlContent", className: "ver-history",
@@ -521,6 +521,7 @@ enyo.kind({
     loadArchive: function(path, file) {
         // TODO stub
         this.doneList = [];
+        if (file == undefined) return;
         var list = file.content.split("\n");
         for (item in list) {
             if (list[item].length > 0) {

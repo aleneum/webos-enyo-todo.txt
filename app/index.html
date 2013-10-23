@@ -3,8 +3,8 @@
 <head>
     <title>Todo.txt Enyo</title>
     <meta name="viewport" content="height=device-height">
-    <!-- <script src="/opt/PalmSDK/Current/share/framework/enyo/1.0/framework/enyo.js" type="text/javascript" launch="nobridge"></script> -->
-    <script src="contrib/framework/enyo.js" type="text/javascript" launch="nobridge"></script>
+    <script src="/opt/PalmSDK/Current/share/framework/enyo/1.0/framework/enyo.js" type="text/javascript" launch="nobridge"></script>
+    <!-- <script src="contrib/framework/enyo.js" type="text/javascript" launch="nobridge"></script> -->
 </head>
 <body>
 <script type="text/javascript">
@@ -18,9 +18,19 @@
 
 </script>
 <div id="history" style="display: none">
+    <div class="version">0.7.0</div>
+    <ul>
+        <li>consistent icon set; increase button visibility</li>
+        <li>Reintroduced autoarchive.</li>
+        <li>Multitask: Add or edit several tasks at the same time</li>
+        <li>Assing projects or contexts from list view</li>
+        <li>Added SimpleTask keywords due: and t: for MYN/1MTD</li>
+        <li>Save file on exit</li>
+        <li>Bugfix: Load file on startup</li>
+    </ul>
     <div class="version">0.6.0</div>
     <ul>
-        <li>Introduce encryption (disabled by default).</li>
+        <li>Introduce encryption</li>
         <li>Removed autoarchive option.</li>
         <li>Changed file management: Files are always saved to disk. Login into Dropbox enables remote backup options.
         If files were changed remotely they will be downloaded.</li>
