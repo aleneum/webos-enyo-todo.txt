@@ -366,9 +366,7 @@ enyo.kind({
 
     addTodo: function() {
         var detail = this.owner.$.editView.$.tododetail.getValue();
-        detail = detail.replace(/<div>/g,"\n");
-        detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
-        var tasks = detail.split("\n");
+        var tasks = this.owner.$.editView.getTaskList();
         for (var i = tasks.length - 1; i >= 0; i--) {
             var strTask = tasks[i];
             strTask.trim();

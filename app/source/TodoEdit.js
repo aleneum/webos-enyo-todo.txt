@@ -24,7 +24,7 @@ enyo.kind({
     components: [
         {name: "insertPopup", kind: "ModalDialog", dismissWithClick: true,
             layoutKind: "VFlexLayout", height: "60%",
-            contentHeight: "100%", onClose: "closePopup",
+            contentHeight: "100%", onClose: "closeInsert",
             components: [
                 {flex: 1, name: "iscroller", kind: "Scroller",
                     components: [
@@ -36,7 +36,7 @@ enyo.kind({
                         {flex:1, kind: "Button", caption: "add for current", onclick: "addSingleTag", className: "enyo-button-affirmative"},
                         {flex:1, kind: "Button", caption: "add for all", onclick: "addTags", className: "enyo-button-affirmative"}
                     ]},
-                    {kind: "Button", caption: "cancel", onclick: "closePopup", className: "enyo-button-negative"} 
+                    {kind: "Button", caption: "cancel", onclick: "closeInsert", className: "enyo-button-negative"} 
                 ]}
         ]},
         {name: "editPriorityPopup", kind: "ModalDialog",
@@ -84,7 +84,7 @@ enyo.kind({
         ]},
 
         {flex: 1, name: "scroller", kind: "Scroller", components: [
-            {kind: "RichText", name: "tododetail", richContent: true, hint:"", oninput:"", onblur: "storeFocus",
+            {kind: "RichText", name: "tododetail", richContent: true, hint:"", oninput:"",
                 className: "enyo-box-input"}, {kind: "HtmlContent", name:"hint", content: ""}
         ]},
         {name: "editToolbar", kind: "Toolbar", pack: "justify", className: "enyo-toolbar-light",
@@ -117,11 +117,7 @@ enyo.kind({
         var due = this.$.editDuePicker.getValue();
         var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
         var dueStr = dfmt.format(due); 
-        var detail = this.$.tododetail.getValue();
-        detail = detail.replace(/^<div>/,"");
-        detail = detail.replace(/<div>/g,"\n");
-        detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
-        var tasks = detail.split("\n");
+        var tasks = this.getTaskList();
         for (var i = tasks.length - 1; i >= 0; i--) {
             var strTask = tasks[i];
             strTask.trim();
@@ -154,11 +150,7 @@ enyo.kind({
         var defer = this.$.editDeferPicker.getValue();
         var dfmt = new enyo.g11n.DateFmt({date:"yyyy-MM-dd"});
         var deferStr = dfmt.format(defer); 
-        var detail = this.$.tododetail.getValue();
-        detail = detail.replace(/^<div>/,"");
-        detail = detail.replace(/<div>/g,"\n");
-        detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
-        var tasks = detail.split("\n");
+        var tasks = this.getTaskList();
         for (var i = tasks.length - 1; i >= 0; i--) {
             var strTask = tasks[i];
             strTask.trim();
@@ -182,15 +174,20 @@ enyo.kind({
 
     removeHint: function() {
         this.$.hint.setContent("");
-        this.$.tododetail.oninput = "storeFocus";
+        this.$.tododetail.oninput = "";
+        this.$.tododetail.onkeyup = "storeFocus";
+        this.$.tododetail.onclick = "storeFocus";
+        this.$.tododetail.onpaste = "storeFocus";
+        this.$.tododetail.oncut = "storeFocus";
     },
 
     setHint: function() {
-        var str = "<div>(A) very important task +project @context </div>";
+        var str = "<div>(A) very important task +project @context</div>";
         str += "<div>not so important right now</div>";
         str += "<div>a future task t:2015-05-23 with due:2015-12-12 date</div>";
         this.$.hint.setContent(str);
         this.$.tododetail.oninput = "removeHint";
+        this.$.tododetail.onclick = "";
     },
 
     setPriority: function(inSender) {
@@ -199,11 +196,7 @@ enyo.kind({
         if (pri == "-") {
             pri = "";
         }
-        var detail = this.$.tododetail.getValue();
-        detail = detail.replace(/^<div>/,"");
-        detail = detail.replace(/<div>/g,"\n");
-        detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
-        var tasks = detail.split("\n");
+        var tasks = this.getTaskList();
         for (var i = tasks.length - 1; i >= 0; i--) {
             var strTask = tasks[i];
             strTask.trim();
@@ -220,21 +213,56 @@ enyo.kind({
         this.$.editPriorityPopup.close();
     },
 
+    // This deals with 2 different behaviours of enyo's RichText when return is pressed.
+    // In chrome this is converted into DIV while webos inserts a BR.
+    // We also have to deal with 'mixed' content since the task2html conversion uses DIV too.
+    // Additionally, there is a different selection behaviour for blank new lines in webos.
+    // In this case the parent's DIV counts as selected.
     storeFocus: function(inSender) {
-        //console.log(inSender.getSelection().collapseToEnd());
-        //console.log(inSender.getSelection());
-        if (inSender.getSelection() != null) {
-            var parent = inSender.getSelection().anchorNode;
-            if (parent.nodeName != "DIV") {
-                parent = parent.parentNode;
-            } 
+        if ((inSender.getSelection() != null) && (inSender.getSelection().anchorNode != null)) {
+            var node = inSender.getSelection().anchorNode;
             var index = 0;
-            while (parent.previousSibling != null) {
-                parent = parent.previousSibling;
-                index += 1;
+
+            //console.log(this.$.tododetail.getHtml());
+            var alreadyChecked = false;
+            // This deals with blank new lines. webos enters <BR><BR> until you enter text.
+            // Later we will also use 'alreadyChecked' to not loop infinitly when we reach a parent DIV
+            // and check for <BR><BR> as last children.
+            if (node.id && (node.lastChild.nodeName == "BR")) {
+                index +=1;
+                node = node.lastChild.previousSibling.previousSibling
+            }
+            while (!node.id) {
+                // check a text element for breaks
+                if (node.nodeName == "#text") {
+                    while (node.previousSibling != undefined) {
+                        node = node.previousSibling;
+                        if (node.nodeName != "BR") {
+                            index += 1;
+                        }
+                    }
+                    node = node.parentNode;
+                } else if (node.nodeName == "DIV") {
+                    if (!alreadyChecked && (node.lastChild.nodeName == "BR")) {
+                        node = node.lastChild.previousSibling.previousSibling;
+                        alreadyChecked = true;
+                        index += 1;
+                    } else if (node.previousSibling != null) {
+                        // a new DIV different from the RichText container means a new line
+                        node = node.previousSibling;
+                        alreadyChecked = false;
+                        if (node.hasChildNodes() == true) {
+                            node = node.lastChild;
+                        }
+                        index += 1;
+                    } else {
+                        node = {id:"error"};
+                    }
+                }
             }
             this.line = index;
         }
+        //console.log(this.line);
     },
 
     showInsert: function() {
@@ -245,20 +273,26 @@ enyo.kind({
         for (i=0; i<this.projectList.length; i++) {
             var project = this.projectList[i];
             var name = project.replace(/^\+/,"PRJ_");
-            this.$.projects.createComponent(
-                {content: project, name: name, owner: this,
+            if (this.$[name] == undefined) {
+                this.$.projects.createComponent(
+                    {content: project, name: name, owner: this,
                     onclick: "insertProject"}
-            );
+                );
+            }
+            this.$[name].show();
         }
         this.$.projects.render();
         this.contextList = this.owner.$.listView.getContextList();
         for (i=0; i<this.contextList.length; i++) {
             var context = this.contextList[i];
             var name = context.replace(/^@/,"CTX_");
-            this.$.contexts.createComponent(
-                {content: context, name: name, owner: this,
+            if (this.$[name] == undefined) {
+                this.$.contexts.createComponent(
+                    {content: context, name: name, owner: this,
                     onclick: "insertContext"}
-            );
+                );
+            }
+            this.$[name].show();
         }
         this.$.contexts.render();
         this.$.iscroller.render();
@@ -313,11 +347,7 @@ enyo.kind({
 
     addTags: function() {
         var newContent = "";
-        var detail = this.$.tododetail.getValue();
-        detail = detail.replace(/^<div>/,"");
-        detail = detail.replace(/<div>/g,"\n");
-        detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
-        var tasks = detail.split("\n");
+        tasks = this.getTaskList();
         for (var i = tasks.length - 1; i >= 0; i--) {
             var strTask = tasks[i];
             strTask.trim();
@@ -338,22 +368,30 @@ enyo.kind({
             }
         };
         this.owner.$.editView.$.tododetail.setValue(newContent);
-        this.closePopup();
+        this.closeInsert();
     },
 
-    closePopup: function() {
-        for (i=0; i<this.projectList.length; i++) {
-            var name = this.projectList[i].replace(/^\+/,"PRJ_");
-            eval("this.$."+name+".destroy()");
-        }
-        this.$.projects.render();
-        for (i=0; i<this.contextList.length; i++) {
-            var name = this.contextList[i].replace(/^@/,"CTX_");
-            eval("this.$."+name+".destroy()");
-        }
-        this.$.contexts.render();
-        this.$.tododetail.forceFocus();
+    closeInsert: function() {
         this.$.insertPopup.close();
+        for (i=0; i<this.projectList.length; i++) {
+            var project = this.projectList[i];
+            var name = project.replace(/^\+/,"PRJ_");
+            this.$[name].hide();
+        }
+        for (i=0; i<this.contextList.length; i++) {
+            var context = this.contextList[i];
+            var name = context.replace(/^@/,"CTX_");
+            this.$[name].hide();
+        }
+        this.$.tododetail.forceFocus();
+    },
+    getTaskList: function() {
+            var detail = this.$.tododetail.getValue();
+            detail = detail.replace(/^<div>/,"");
+            detail = detail.replace(/&nbsp;/g,"");
+            detail = detail.replace(/<(div|br)>/g,"\n");
+            detail = detail.replace(/<[a-zA-Z\/][^>]*>/g,"");
+            console.log(detail);
+            return detail.split("\n");
     }
-
 });

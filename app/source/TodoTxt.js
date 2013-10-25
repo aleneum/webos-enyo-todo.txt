@@ -524,7 +524,7 @@ enyo.kind({
     loadArchive: function(path, file) {
         // TODO stub
         this.doneList = [];
-        if (file == undefined) return;
+        if (file.content == undefined) return;
         var list = file.content.split("\n");
         for (item in list) {
             if (list[item].length > 0) {
