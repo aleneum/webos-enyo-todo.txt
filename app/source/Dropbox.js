@@ -36,7 +36,7 @@ enyo.kind({
     },
     components: [
         {name: "authPopup", kind: "ModalDialog", components: [
-            {content: "Please click DONE to complete the process."},
+            {content: "Dropbox Website should be opened soon. Please click DONE to complete the process when you authorized Todo.txt Enyo."},
             {kind:"Button", caption:"DONE", onclick:"requestAccessToken"}
         ]},
         {name: "launch", kind: "PalmService",

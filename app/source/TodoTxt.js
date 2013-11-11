@@ -39,6 +39,14 @@ enyo.kind({
             ]},
             {kind: "Button", caption: "Done", onclick: "closeAbout" }
         ]},
+        {kind: "ModalDialog", name: "conflictPopup" , components: [
+          {content: "Version Conflict!", style:"text-align:center;"},
+          {content: "Which version should be kept?"},
+          {layoutKind: "HFlexLayout", pack: "center", components: [
+              {flex: 1, kind: "Button", caption: "Local", onclick: "uploadData"},
+              {flex: 1, kind: "Button", caption: "Remote", onclick: "downloadData"}
+          ]}
+      	]},
         {kind: "PageHeader", pack: "justify", components: [
             {kind: "HtmlContent", content: "Todo.txt Enyo [beta]"},
             {flex: 1},
@@ -215,52 +223,65 @@ enyo.kind({
         this.$.dropbox.getMetadata("/todo.txt");
     },
 
+    uploadData: function() {
+    	console.log("local file changed --> upload");
+        var tododata = "";
+        var task;
+        for (item in this.todoList) {
+            task = this.todoList[item];
+            tododata = tododata + task.toString() + "\n";
+        }
+        var donedata = "";
+        for (item in this.doneList) {
+            donedata = donedata + this.doneList[item].detail + "\n";
+        }
+        //console.log(data);
+        if ((this.preferences["encrypted"] == true) && (this.preferences["password"].length > 0)) {
+            var encrypted;
+            //console.log("encrypt data!");
+            //console.log(this.preferences["password"]);
+            encrypted = CryptoJS.AES.encrypt(tododata, this.preferences["password"]);
+            tododata = encrypted.toString();
+            encrypted = CryptoJS.AES.encrypt(donedata, this.preferences["password"]);
+            donedata = encrypted.toString();
+            //console.log(tododata);
+        }
+        this.$.dropbox.putFile("/todo.txt",tododata);
+        this.$.dropbox.putFile("/done.txt",donedata);
+        this.preferences["localchanges"] = false;
+        this.$.conflictPopup.close();
+        this.showToast("upload files");
+        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
+    },
+
+    downloadData: function() {
+    	console.log("dropbox file seems more recent --> download");
+        this.$.dropbox.getFile("/todo.txt");
+        this.$.dropbox.getFile("/done.txt");
+        this.$.conflictPopup.hide();
+        this.showToast("download files");
+    },
+
     syncTodoCheck: function(inSender, inResponse, inRequest) {
         console.log("rev is " + inResponse.rev);
         console.log("local ref is " + this.preferences["dboxrev"]);
         if (inResponse.rev == this.preferences["dboxrev"]) {
-            console.log("dropbox file did not change.");
+            //console.log("dropbox file did not change.");
             if (this.preferences["localchanges"] == true) {
-                console.log("local file changed --> upload");
-                var tododata = "";
-                var task;
-                for (item in this.todoList) {
-                    task = this.todoList[item];
-                    tododata = tododata + task.toString() + "\n";
-                }
-                var donedata = "";
-                for (item in this.doneList) {
-                    donedata = donedata + this.doneList[item].detail + "\n";
-                }
-                //console.log(data);
-                if ((this.preferences["encrypted"] == true) && (this.preferences["password"].length > 0)) {
-                    var encrypted;
-                    //console.log("encrypt data!");
-                    //console.log(this.preferences["password"]);
-                    encrypted = CryptoJS.AES.encrypt(tododata, this.preferences["password"]);
-                    tododata = encrypted.toString();
-                    encrypted = CryptoJS.AES.encrypt(donedata, this.preferences["password"]);
-                    donedata = encrypted.toString();
-                    //console.log(tododata);
-                }
-                this.$.dropbox.putFile("/todo.txt",tododata);
-                this.$.dropbox.putFile("/done.txt",donedata);
-                this.showToast("upload files");
+                this.uploadData();
             } else {
                 this.showToast("files in sync");
             }
         }  else {
-            // we prefer remote data if they changed for the moment
-            // also we assume that todo.txt and done.txt are synced
+        	// we assume that todo.txt and done.txt are in sync
             // which means we just check todo.txt's rev
-            console.log("dropbox file seems more recent --> download");
-            this.$.dropbox.getFile("/todo.txt");
-            this.$.dropbox.getFile("/done.txt");
-            this.preferences["dboxrev"] = inResponse.rev;
-            this.showToast("download files");
+        	if (this.preferences["localchanges"] == true) {
+        		this.$.conflictPopup.openAtCenter();
+        	} else {
+        		this.preferences["dboxrev"] = inResponse.rev;
+        		this.downloadData();
+        	}
         }
-        this.preferences["localchanges"] = false;
-        localStorage.setItem("TodoPreferences", JSON.stringify(this.preferences));
     },
 
     archiveTodo: function() {

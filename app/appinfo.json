@@ -1,6 +1,6 @@
 {
 	"id": "com.github.aleneum.todotxt",
-	"version": "0.7.1",
+	"version": "0.7.2",
 	"vendor": "aleneum",
 	"type": "web",
 	"main": "index.html",
